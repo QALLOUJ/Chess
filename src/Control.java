@@ -148,6 +148,10 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
             for (int y = 0; y < 8; y++) {
                 Case c = plateau.getCase(x, y);
                 Piece piece = c.getPiece();
+                if (piece instanceof DecorateurPiece) {
+                    piece = ((DecorateurPiece) piece).getPieceOriginale(); // On récupère la vraie pièce à l’intérieur
+                }
+
 
                 if (piece != null) {
                     String couleur = piece.getCouleur();
