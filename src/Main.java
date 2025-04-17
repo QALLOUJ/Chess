@@ -14,8 +14,9 @@ public class Main {
         plateau.getCase(4, 7).setPiece(new Roi("noir"));
         plateau.getCase(3, 0).setPiece(new Reine("blanc"));
         plateau.getCase(3, 7).setPiece(new Reine("noir"));
+        plateau.getCase(0, 1).setPiece(new PieceAvecLog(new Pion("blanc")));
 
-        plateau.getCase(0, 1).setPiece(new Pion("blanc"));
+
         plateau.getCase(1, 1).setPiece(new Pion("blanc"));
         plateau.getCase(2, 1).setPiece(new Pion("blanc"));
         plateau.getCase(3, 1).setPiece(new Pion("blanc"));
