@@ -1,21 +1,52 @@
 package modele;
 
+import java.util.ArrayList;
+
 public class Pion extends Piece {
 
     public Pion(String couleur) {
-        super(couleur);
+        super(couleur); // doit toujours être en premier
+    }
+
+
+    @Override
+    public void setCase(Case c) {
+        super.setCase(c);
+        this.dec = new DecPion(this, c.getPlateau());
+
     }
 
     @Override
-    public boolean peutDeplacer(Case caseDepart, Case caseArrivee) {
+    public boolean peutDeplacer(Case source, Case arrive) {
+        if (dec == null) return false;
+        ArrayList<Case> lst = dec.getMesCA();
+        return lst.contains(arrive);
+    }
+}
+
+        /*
         int dx = caseArrivee.getX() - caseDepart.getX();
         int dy = caseArrivee.getY() - caseDepart.getY();
 
-        // Si blanc, avance vers le haut (y décroissant), sinon vers le bas (y croissant)
-        if (getCouleur().equalsIgnoreCase("blanc")) {
-            return dx == 0 && dy == -1;
-        } else {
-            return dx == 0 && dy == 1;
+        Piece pieceCible = caseArrivee.getPiece();
+        String couleur = getCouleur();
+
+        // Pion blanc (avance vers le haut du plateau)
+        if (couleur.equals("blanc")) {
+            if (dx == 0 && dy == 1 && pieceCible == null) return true; // avancer d’une case
+            if (dx == 0 && dy == 2 && caseDepart.getY() == 1 && pieceCible == null) return true; // premier déplacement
+            if (Math.abs(dx) == 1 && dy == 1 && pieceCible != null && !pieceCible.getCouleur().equals(couleur)) return true; // prise diagonale
         }
+
+        // Pion noir (avance vers le bas)
+        if (couleur.equals("noir")) {
+            if (dx == 0 && dy == -1 && pieceCible == null) return true;
+            if (dx == 0 && dy == -2 && caseDepart.getY() == 6 && pieceCible == null) return true;
+            if (Math.abs(dx) == 1 && dy == -1 && pieceCible != null && !pieceCible.getCouleur().equals(couleur)) return true;
+        }
+
+        return false;
     }
 }
+/*
+         */

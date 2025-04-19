@@ -1,6 +1,6 @@
 package modele;
 
-public class Cavalier extends Piece {
+    public class Cavalier extends Piece {
 
     public Cavalier(String couleur) {
         super(couleur);

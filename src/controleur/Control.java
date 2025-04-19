@@ -1,8 +1,9 @@
+package controleur;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.*;
@@ -30,6 +31,8 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
     private ImageIcon icoCavalierBlanc, icoCavalierNoir;
     private ImageIcon icoPionBlanc, icoPionNoir;
 
+
+
     private Case caseClic1; // mémorisation des cases cliquées
     private Case caseClic2;
 
@@ -53,6 +56,36 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
         mettreAJourAffichage();
 
     }
+    private Case selection = null;
+
+    public void caseCliquee(Case c) {
+        // Vérifier si aucune pièce n'est actuellement sélectionnée (premier clic)
+        if (selection == null) {
+            // 1er clic : on sélectionne la pièce
+            Piece piece = jeu.getPlateau().getPiece(c);
+
+            // Vérifier si la case contient une pièce et si la couleur de la pièce correspond à celle du joueur courant
+            if (piece != null && piece.getCouleur().equals(jeu.getJoueurCourant().getCouleur())) {
+                selection = c;
+                System.out.println("Pièce sélectionnée : " + piece);
+            }
+        } else {
+            // 2e clic : tentative de déplacement
+            Piece pieceSelectionnee = jeu.getPlateau().getPiece(selection);
+            Piece pieceCible = jeu.getPlateau().getPiece(c);
+
+            // Vérifier si le déplacement est valide
+            if (jeu.demandeDeplacementPiece(selection, c)) {
+                System.out.println("Déplacement réussi : " + pieceSelectionnee + " de " + selection + " à " + c);
+            } else {
+                System.out.println("Déplacement invalide.");
+            }
+
+            // Réinitialiser la sélection après un déplacement
+            selection = null;
+        }
+    }
+
 
     private void chargerLesIcones() {
         icoRoiBlanc = chargerIcone("Images/white-king.png");
@@ -111,16 +144,33 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
                 jlab.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
-
                         if (caseClic1 == null) {
+                            // Sélectionner la pièce à déplacer
                             caseClic1 = plateau.getCases()[xx][yy];
-                        } else {
-                            caseClic2 = plateau.getCases()[xx][yy];
-                            jeu.demandeDeplacementPiece(caseClic1, caseClic2);
-                            caseClic1 = null;
-                            caseClic2 = null;
-                        }
 
+                            // Vérifier que la pièce appartient au joueur actif
+                            if (caseClic1.getPiece() != null && caseClic1.getPiece().getCouleur().equals(jeu.getJoueurCourant().getCouleur())){
+
+
+                            // La pièce appartient au joueur actif, donc on permet la sélection
+                            } else {
+                                caseClic1 = null; // Réinitialiser si la case n'a pas de pièce ou appartient à l'adversaire
+                            }
+                        } else {
+                            // Déplacer la pièce si elle est valide
+                            caseClic2 = plateau.getCases()[xx][yy];
+
+                            // Vérifier si le déplacement est valide pour la pièce
+                            if (caseClic1 != caseClic2 && caseClic1.getPiece().peutDeplacer(caseClic1, caseClic2)) {
+                                // Effectuer le déplacement
+                                jeu.demandeDeplacementPiece(caseClic1, caseClic2);
+
+
+                                // Réinitialiser les cases sélectionnées
+                                caseClic1 = null;
+                                caseClic2 = null;
+                            }
+                        }
                     }
                 });
 

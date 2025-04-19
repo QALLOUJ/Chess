@@ -1,7 +1,10 @@
 package modele;
 
 public abstract class Piece {
-    private final String couleur;  // La couleur de la pièce (blanche ou noire)
+    private final String couleur;
+    private Case c;
+    DesCasesAccessibles dec;
+    private Plateau plateau;
 
     // Constructeur pour initialiser la couleur de la pièce
     public Piece(String couleur) {
@@ -13,13 +16,24 @@ public abstract class Piece {
         return couleur;
     }
 
-    // Méthode abstraite pour le déplacement de la pièce
-    // Cette méthode devra être implémentée dans chaque sous-classe pour définir les règles de déplacement de chaque type de pièce
-    public abstract boolean peutDeplacer(Case caseDepart, Case caseArrivee);
+    public Case getCase() {
+        return c;
+    }
 
-    // Méthode pour obtenir une représentation sous forme de chaîne de caractères de la pièce
+    public void setCase(Case c) {
+        this.c = c;
+    }
+
+    public Plateau getPlateau() {
+        return plateau;
+    }
+
+
     @Override
     public String toString() {
         return getClass().getSimpleName() + " " + couleur;
     }
+
+    public abstract boolean peutDeplacer(Case source, Case arrive);
+
 }
