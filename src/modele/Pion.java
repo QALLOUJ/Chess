@@ -3,7 +3,6 @@ package modele;
 import java.util.ArrayList;
 
 public class Pion extends Piece {
-
     public Pion(String couleur) {
         super(couleur); // doit toujours être en premier
     }
