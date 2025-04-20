@@ -1,5 +1,7 @@
 package modele;
 
+import java.util.ArrayList;
+
 public class Reine extends Piece {
 
     public Reine(String couleur) {
@@ -7,17 +9,19 @@ public class Reine extends Piece {
     }
 
     @Override
-    public boolean peutDeplacer(Case from, Case to) {
-        int dx = Math.abs(from.getX() - to.getX());
-        int dy = Math.abs(from.getY() - to.getY());
-
-        // La Reine peut se déplacer horizontalement, verticalement ou en diagonale
-        if (dx == 0 || dy == 0 || dx == dy) {
-            // Vérifie si la case de destination est vide ou contient une pièce ennemie
-            if (to.getPiece() == null || !to.getPiece().getCouleur().equals(this.getCouleur())) {
-                return true;
-            }
+    public void setCase(Case c) {
+        super.setCase(c);
+        if (c != null) {
+            this.dec = new DecReine(this, c.getPlateau());
+        } else {
+            this.dec = null;
         }
-        return false;
+    }
+
+    @Override
+    public boolean peutDeplacer(Case source, Case arrive) {
+        if (dec == null) return false;
+        ArrayList<Case> lst = dec.getMesCA();
+        return lst.contains(arrive);
     }
 }

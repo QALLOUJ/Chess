@@ -41,6 +41,11 @@ public class Case {
     public boolean contientEnnemi(Piece autrePiece) {
         return piece != null && !piece.getCouleur().equals(autrePiece.getCouleur());
     }
+    public boolean contientAllie(Piece piece) {
+        if (this.piece == null) return false;
+        return this.piece.getCouleur().equals(piece.getCouleur());
+    }
+
 
 
     public Plateau getPlateau() {

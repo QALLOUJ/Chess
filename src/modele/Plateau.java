@@ -13,7 +13,12 @@ public class Plateau extends Observable {
     public Case getCaseRelative(Case source, int dx, int dy) {
         int newX = source.getX() + dx;
         int newY = source.getY() + dy;
-        return getCase(newX, newY);
+
+        if (newX >= 0 && newX < SIZE_X && newY >= 0 && newY < SIZE_Y) {
+            return getCase(newX, newY);
+        } else {
+            return null;
+        }
     }
 
 

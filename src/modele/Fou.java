@@ -1,14 +1,26 @@
 package modele;
 
-public class Fou extends Piece {
+import java.util.ArrayList;
 
+public class Fou extends Piece {
     public Fou(String couleur) {
         super(couleur);
     }
 
     @Override
-    public boolean peutDeplacer(Case caseDepart, Case caseArrivee) {
-        return Math.abs(caseDepart.getX() - caseArrivee.getX()) ==
-                Math.abs(caseDepart.getY() - caseArrivee.getY());
+    public void setCase(Case c) {
+        super.setCase(c);
+        if (c != null) {
+            this.dec = new DecFou(this, c.getPlateau());
+        } else {
+            this.dec = null;
+        }
+    }
+
+    @Override
+    public boolean peutDeplacer(Case source, Case arrive) {
+        if (dec == null) return false;
+        ArrayList<Case> lst = dec.getMesCA();
+        return lst.contains(arrive);
     }
 }

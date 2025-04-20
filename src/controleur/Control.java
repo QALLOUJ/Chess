@@ -67,7 +67,9 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
             // Vérifier si la case contient une pièce et si la couleur de la pièce correspond à celle du joueur courant
             if (piece != null && piece.getCouleur().equals(jeu.getJoueurCourant().getCouleur())) {
                 selection = c;
-                System.out.println("Pièce sélectionnée : " + piece);
+                System.out.println("Pièce sélectionnée : " + piece + " à la position (" + c.getX() + "," + c.getY() + ")");
+
+
             }
         } else {
             // 2e clic : tentative de déplacement
@@ -152,7 +154,7 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
                             if (caseClic1.getPiece() != null && caseClic1.getPiece().getCouleur().equals(jeu.getJoueurCourant().getCouleur())){
 
 
-                            // La pièce appartient au joueur actif, donc on permet la sélection
+                                // La pièce appartient au joueur actif, donc on permet la sélection
                             } else {
                                 caseClic1 = null; // Réinitialiser si la case n'a pas de pièce ou appartient à l'adversaire
                             }
@@ -178,9 +180,9 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
                 jlab.setOpaque(true);
 
                 if ((y%2 == 0 && x%2 == 0) || (y%2 != 0 && x%2 != 0)) {
-                    tabJLabel[x][y].setBackground(new Color(50, 50, 110));
+                    tabJLabel[x][y].setBackground(new Color(245, 245, 220));
                 } else {
-                    tabJLabel[x][y].setBackground(new Color(150, 150, 210));
+                    tabJLabel[x][y].setBackground(new Color(200, 100, 110));
                 }
 
                 grilleJLabels.add(jlab);
@@ -198,10 +200,6 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
             for (int y = 0; y < 8; y++) {
                 Case c = plateau.getCase(x, y);
                 Piece piece = c.getPiece();
-                if (piece instanceof DecorateurPiece) {
-                    piece = ((DecorateurPiece) piece).getPieceOriginale(); // On récupère la vraie pièce à l’intérieur
-                }
-
 
                 if (piece != null) {
                     String couleur = piece.getCouleur();
@@ -241,7 +239,7 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
                     public void run() {
                         mettreAJourAffichage();
                     }
-                }); 
+                });
         */
 
     }

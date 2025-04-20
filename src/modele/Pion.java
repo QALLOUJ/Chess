@@ -9,11 +9,16 @@ public class Pion extends Piece {
 
 
     @Override
+
     public void setCase(Case c) {
         super.setCase(c);
-        this.dec = new DecPion(this, c.getPlateau());
-
+        if (c != null) {
+            this.dec = new DecPion(this, c.getPlateau());
+        } else {
+            this.dec = null;
+        }
     }
+
 
     @Override
     public boolean peutDeplacer(Case source, Case arrive) {

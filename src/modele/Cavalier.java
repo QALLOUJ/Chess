@@ -1,15 +1,26 @@
 package modele;
 
-    public class Cavalier extends Piece {
+import java.util.ArrayList;
 
+public class Cavalier extends Piece {
     public Cavalier(String couleur) {
         super(couleur);
     }
 
     @Override
-    public boolean peutDeplacer(Case caseDepart, Case caseArrivee) {
-        int dx = Math.abs(caseDepart.getX() - caseArrivee.getX());
-        int dy = Math.abs(caseDepart.getY() - caseArrivee.getY());
-        return (dx == 2 && dy == 1) || (dx == 1 && dy == 2);
+    public void setCase(Case c) {
+        super.setCase(c);
+        if (c != null) {
+            this.dec = new DecCavalier(this, c.getPlateau());
+        } else {
+            this.dec = null;
+        }
+    }
+
+    @Override
+    public boolean peutDeplacer(Case source, Case arrive) {
+        if (dec == null) return false;
+        ArrayList<Case> lst = dec.getMesCA();
+        return lst.contains(arrive);
     }
 }

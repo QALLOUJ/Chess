@@ -1,6 +1,6 @@
 package modele;
 
-
+import java.util.ArrayList;
 
 public class Tour extends Piece {
 
@@ -9,7 +9,20 @@ public class Tour extends Piece {
     }
 
     @Override
-    public boolean peutDeplacer(Case caseDepart, Case caseArrivee) {
-        return caseDepart.getX() == caseArrivee.getX() || caseDepart.getY() == caseArrivee.getY();
+    public void setCase(Case c) {
+        super.setCase(c);
+        if (c != null) {
+            this.dec = new DecTour(this, c.getPlateau());
+        } else {
+            this.dec = null;
+        }
+    }
+
+    @Override
+    public boolean peutDeplacer(Case source, Case arrive) {
+        if (dec == null) return false;
+        ArrayList<Case> lst = dec.getMesCA();
+        return lst.contains(arrive);
     }
 }
+
