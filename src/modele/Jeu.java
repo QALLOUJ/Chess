@@ -25,20 +25,21 @@ public class Jeu {
         joueurCourant = (joueurCourant == joueurBlanc) ? joueurNoir : joueurBlanc;
     }
 
+
     public boolean demandeDeplacementPiece(Case source, Case arrive) {
         Piece piece = source.getPiece();
         if (piece == null) {
-            System.out.println("Aucune pièce à déplacer !");
+
             return false;
         }
 
         if (!piece.getCouleur().equals(joueurCourant.getCouleur())) {
-            System.out.println("Ce n'est pas votre tour !");
+
             return false;
         }
 
         if (!piece.peutDeplacer(source, arrive)) {
-            System.out.println("Déplacement invalide pour cette pièce.");
+
             return false;
         }
 
@@ -52,7 +53,7 @@ public class Jeu {
 
         plateau.notifierChangement();
 
-        System.out.println("Déplacement effectué de " + source + " vers " + arrive);
+
         return true;
     }
 }

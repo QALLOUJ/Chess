@@ -59,34 +59,36 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
     private Case selection = null;
 
     public void caseCliquee(Case c) {
-        // Vérifier si aucune pièce n'est actuellement sélectionnée (premier clic)
+        // 1er clic : sélection de la pièce
         if (selection == null) {
-            // 1er clic : on sélectionne la pièce
             Piece piece = jeu.getPlateau().getPiece(c);
 
-            // Vérifier si la case contient une pièce et si la couleur de la pièce correspond à celle du joueur courant
             if (piece != null && piece.getCouleur().equals(jeu.getJoueurCourant().getCouleur())) {
                 selection = c;
                 System.out.println("Pièce sélectionnée : " + piece + " à la position (" + c.getX() + "," + c.getY() + ")");
-
-
+            } else {
+                System.out.println("Aucune pièce sélectionnée ou ce n’est pas votre tour.");
             }
-        } else {
-            // 2e clic : tentative de déplacement
+        }
+        // 2e clic : tentative de déplacement
+        else {
             Piece pieceSelectionnee = jeu.getPlateau().getPiece(selection);
             Piece pieceCible = jeu.getPlateau().getPiece(c);
 
-            // Vérifier si le déplacement est valide
             if (jeu.demandeDeplacementPiece(selection, c)) {
                 System.out.println("Déplacement réussi : " + pieceSelectionnee + " de " + selection + " à " + c);
             } else {
-                System.out.println("Déplacement invalide.");
+                System.out.println("Déplacement invalide de " + pieceSelectionnee + " vers " + c);
             }
 
-            // Réinitialiser la sélection après un déplacement
+            // Réinitialiser après le clic, que le déplacement soit valide ou non
             selection = null;
         }
     }
+
+
+
+
 
 
     private void chargerLesIcones() {
@@ -146,35 +148,10 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
                 jlab.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
-                        if (caseClic1 == null) {
-                            // Sélectionner la pièce à déplacer
-                            caseClic1 = plateau.getCases()[xx][yy];
-
-                            // Vérifier que la pièce appartient au joueur actif
-                            if (caseClic1.getPiece() != null && caseClic1.getPiece().getCouleur().equals(jeu.getJoueurCourant().getCouleur())){
-
-
-                                // La pièce appartient au joueur actif, donc on permet la sélection
-                            } else {
-                                caseClic1 = null; // Réinitialiser si la case n'a pas de pièce ou appartient à l'adversaire
-                            }
-                        } else {
-                            // Déplacer la pièce si elle est valide
-                            caseClic2 = plateau.getCases()[xx][yy];
-
-                            // Vérifier si le déplacement est valide pour la pièce
-                            if (caseClic1 != caseClic2 && caseClic1.getPiece().peutDeplacer(caseClic1, caseClic2)) {
-                                // Effectuer le déplacement
-                                jeu.demandeDeplacementPiece(caseClic1, caseClic2);
-
-
-                                // Réinitialiser les cases sélectionnées
-                                caseClic1 = null;
-                                caseClic2 = null;
-                            }
-                        }
+                        caseCliquee(plateau.getCases()[xx][yy]);
                     }
                 });
+
 
 
                 jlab.setOpaque(true);

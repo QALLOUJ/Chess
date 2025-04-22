@@ -14,17 +14,14 @@ public class DecReine extends DesCasesAccessibles {
         Case caseActuelle = piece.getCase();
         if (caseActuelle == null) return lst;
 
-
         int[][] directions = {
                 {-1, 0}, {1, 0}, {0, -1}, {0, 1},
                 {-1, -1}, {-1, 1}, {1, -1}, {1, 1}
         };
 
-        // Vérifier toutes les directions
         for (int[] direction : directions) {
             int dx = direction[0];
             int dy = direction[1];
-
 
             int x = caseActuelle.getX();
             int y = caseActuelle.getY();
@@ -33,9 +30,10 @@ public class DecReine extends DesCasesAccessibles {
                 x += dx;
                 y += dy;
 
+                // vérifie les limites du plateau
+                if (x < 0 || x >= plateau.SIZE_X || y < 0 || y >= plateau.SIZE_Y) break;
 
                 Case caseCourante = plateau.getCase(x, y);
-                if (caseCourante == null) break;
 
                 if (caseCourante.estVide()) {
                     lst.add(caseCourante);
