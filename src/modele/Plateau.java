@@ -8,7 +8,7 @@ public class Plateau extends Observable {
     public static int SIZE_Y;
     private final Case[][] cases;
 
-    // Constructeur pour initialiser le plateau avec une taille
+
     public Plateau(int sizeX, int sizeY) {
         this.SIZE_X = sizeX;
         this.SIZE_Y = sizeY;
@@ -56,9 +56,12 @@ public class Plateau extends Observable {
             throw new IndexOutOfBoundsException("Coordonnées hors limites : (" + x + ", " + y + ")");
         }
     }
-    public Case[][] getCases() { return cases; }
 
-    // Méthode pour obtenir une case relative à une autre
+    public Case[][] getCases() {
+        return cases;
+    }
+
+
     public Case getCaseRelative(Case source, int dx, int dy) {
         int newX = source.getX() + dx;
         int newY = source.getY() + dy;
@@ -81,70 +84,77 @@ public class Plateau extends Observable {
         notifyObservers();
     }
 
-    // 1. Trouver le roi d'une couleur
     public Case getCaseRoi(String couleur) {
+        // Recherche le roi de la couleur spécifiée sur le plateau
         for (int x = 0; x < SIZE_X; x++) {
             for (int y = 0; y < SIZE_Y; y++) {
                 Piece piece = cases[x][y].getPiece();
                 if (piece instanceof Roi && piece.getCouleur().equals(couleur)) {
-                    return cases[x][y];
+                    return cases[x][y]; // Retourne la case où se trouve le roi
                 }
             }
         }
-        return null;
+        return null; // Si aucun roi n'est trouvé
     }
 
-    // 2. Vérifier si le roi est en échec
     public boolean estEnEchec(String couleur) {
+        // Vérifie si le roi de la couleur spécifiée est en échec
         Case caseRoi = getCaseRoi(couleur);
-        if (caseRoi == null) return false;
+        if (caseRoi == null) return false; // Si aucun roi n'est trouvé, pas d'échec
 
+        // Parcours toutes les cases du plateau pour vérifier si une pièce ennemie menace le roi
         for (int x = 0; x < SIZE_X; x++) {
             for (int y = 0; y < SIZE_Y; y++) {
                 Piece piece = cases[x][y].getPiece();
                 if (piece != null && !piece.getCouleur().equals(couleur)) {
                     if (piece.peutDeplacer(cases[x][y], caseRoi)) {
-                        return true;
+                        return true; // Le roi est en échec si une pièce ennemie peut le capturer
                     }
                 }
             }
         }
-        return false;
+        return false; // Si aucune pièce ennemie ne menace le roi
     }
 
-    // 3. Vérifier s’il y a échec et mat
     public boolean estEchecEtMat(String couleur) {
-        if (!estEnEchec(couleur)) return false;
+        if (!estEnEchec(couleur)) {
+            return false;
+        }
 
-        // tester tous les coups possibles
-        for (int x1 = 0; x1 < SIZE_X; x1++) {
-            for (int y1 = 0; y1 < SIZE_Y; y1++) {
-                Piece piece = cases[x1][y1].getPiece();
-                if (piece != null && piece.getCouleur().equals(couleur)) {
-                    Case source = cases[x1][y1];
-                    ArrayList<Case> destinations = piece.dec.getMesCA(); // positions accessibles
-                    for (Case arrivee : destinations) {
-                        Piece sauvegarde = arrivee.getPiece();
+        for (int x = 0; x < SIZE_X; x++) {
+            for (int y = 0; y < SIZE_Y; y++) {
+                Piece piece = cases[x][y].getPiece();
 
-                        // simulation du déplacement
-                        arrivee.setPiece(piece);
+                if (piece != null && piece.getCouleur().equals(couleur) && piece.dec != null) {
+                    Case source = cases[x][y];
+                    ArrayList<Case> destinations = piece.dec.getMesCA();
+
+                    for (Case cible : destinations) {
+                        if (cible == null) continue;
+
+                        Piece sauvegarde = cible.getPiece();
+                        Case ancienneCase = piece.getCase();
+
+                        // Simulation du coup
+                        cible.setPiece(piece);
                         source.setPiece(null);
-                        piece.setCase(arrivee);
+                        piece.setCase(cible);
 
-                        boolean toujoursEnEchec = estEnEchec(couleur);
+                        boolean encoreEnEchec = estEnEchec(couleur);
 
-                        // annuler le déplacement
+                        // Annulation du coup
                         source.setPiece(piece);
-                        arrivee.setPiece(sauvegarde);
-                        piece.setCase(source);
+                        cible.setPiece(sauvegarde);
+                        piece.setCase(ancienneCase);
 
-                        if (!toujoursEnEchec) {
-                            return false; // il existe au moins un coup pour sortir d’échec
+                        if (!encoreEnEchec) {
+                            return false;
                         }
                     }
                 }
             }
         }
-        return true; // aucun coup possible pour sortir d’échec
+
+        return true;
     }
 }
