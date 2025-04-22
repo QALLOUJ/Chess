@@ -56,4 +56,11 @@ public class Case {
     public String toString() {
         return "(" + x + "," + y + ")";
     }
+    private boolean surlignee = false;
+
+    public void setSurlignee(boolean surlignee) {
+        this.surlignee = surlignee;
+    }
+
+
 }

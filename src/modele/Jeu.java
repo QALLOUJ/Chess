@@ -39,53 +39,69 @@ public class Jeu {
             return false; // Si aucune pièce à déplacer
         }
 
-
         if (!piece.getCouleur().equals(joueurCourant.getCouleur())) {
             return false;
         }
-
 
         if (!piece.peutDeplacer(source, arrive)) {
             return false;
         }
 
-
         Piece pieceCapturee = arrive.getPiece();
-
 
         Coup coup = new Coup(piece, source, arrive, pieceCapturee);
         System.out.println(coup);
 
-
         arrive.setPiece(piece);
         source.setPiece(null);
 
-
         piece.setCase(arrive);
-
 
         historique.add(coup);
 
-
         String gagnant = joueurCourant.getNom();
-        // Changer de joueur pour le prochain tour
+
         changerTour();
 
-        // Notifier le plateau pour mettre à jour l'affichage graphique
 
         plateau.notifierChangement();
 
-// Vérifier si l'adversaire est en échec et mat
-        String couleurAdverse = joueurCourant.getCouleur(); // joueurCourant est maintenant l'adversaire
-        if (plateau.estEchecEtMat(couleurAdverse)) {
-            // Déterminer le gagnant (c'est le joueur précédent)
 
-// Créer le panneau principal avec fond rose clair
+        String couleurAdverse = joueurCourant.getCouleur(); // joueurCourant est maintenant l'adversaire
+
+        if (plateau.estEnEchec(couleurAdverse)) {
+
             JPanel panel = new JPanel();
             panel.setBackground(new Color(255, 192, 203)); // Rose clair un peu plus doux
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-// Créer le label avec du HTML pour styliser
+
+            JLabel label = new JLabel("<html><div style='text-align: center;'>"
+                    + "<h1 style='color: white; font-size: 18px;'>♔ <b>Échec, attention !</b> ♚</h1>"
+                    + "<p style='color: white; font-size: 14px;'><strong>Le roi de " + couleurAdverse + " est en échec !</strong></p>"
+                    + "</div></html>");
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+
+            panel.add(Box.createVerticalStrut(20));
+            panel.add(label);
+            panel.add(Box.createVerticalStrut(20));
+
+
+            JOptionPane.showMessageDialog(null,
+                    panel,
+                    "Attention : Échec",
+                    JOptionPane.INFORMATION_MESSAGE);
+        }
+
+
+        if (plateau.estEchecEtMat(couleurAdverse)) {
+
+            JPanel panel = new JPanel();
+            panel.setBackground(new Color(255, 192, 203)); // Rose clair un peu plus doux
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+
             JLabel label = new JLabel("<html><div style='text-align: center;'>"
                     + "<h1 style='color: white; font-size: 18px;'>♔ <b>Échec et Mat</b> ♚</h1>"
                     + "<p style='color: white; font-size: 14px;'><strong>" + gagnant + "</strong> a remporté la partie !</p>"
@@ -93,20 +109,19 @@ public class Jeu {
             label.setHorizontalAlignment(SwingConstants.CENTER);
             label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 
-
-            panel.add(Box.createVerticalStrut(20)); // un petit espace en haut
+            panel.add(Box.createVerticalStrut(20));
             panel.add(label);
-            panel.add(Box.createVerticalStrut(20)); // un petit espace en bas
+            panel.add(Box.createVerticalStrut(20));
 
-// Afficher la boîte de dialogue avec le panel stylisé
+
             JOptionPane.showMessageDialog(null,
                     panel,
                     "Fin de la partie",
                     JOptionPane.INFORMATION_MESSAGE);
 
-            return false; // La partie est terminée, on ne continue pas
+            return false;
         }
 
-        return true; // Le coup est valide, on peut continuer le jeu
+        return true;
     }
 }

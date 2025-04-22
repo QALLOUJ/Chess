@@ -3,7 +3,7 @@ package modele;
 public abstract class Piece {
     private final String couleur;
     private Case c;
-    DesCasesAccessibles dec;
+    public DesCasesAccessibles dec;
     private Plateau plateau;
 
     // Constructeur pour initialiser la couleur de la pièce

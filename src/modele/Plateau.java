@@ -73,19 +73,19 @@ public class Plateau extends Observable {
         }
     }
 
-    // Récupérer la pièce d'une case donnée
+
     public Piece getPiece(Case c) {
         return c.getPiece();
     }
 
-    // Méthode pour notifier un changement dans l'état du plateau
+
     public void notifierChangement() {
         setChanged();
         notifyObservers();
     }
 
     public Case getCaseRoi(String couleur) {
-        // Recherche le roi de la couleur spécifiée sur le plateau
+
         for (int x = 0; x < SIZE_X; x++) {
             for (int y = 0; y < SIZE_Y; y++) {
                 Piece piece = cases[x][y].getPiece();
@@ -94,26 +94,27 @@ public class Plateau extends Observable {
                 }
             }
         }
-        return null; // Si aucun roi n'est trouvé
+        return null;
     }
 
     public boolean estEnEchec(String couleur) {
-        // Vérifie si le roi de la couleur spécifiée est en échec
-        Case caseRoi = getCaseRoi(couleur);
-        if (caseRoi == null) return false; // Si aucun roi n'est trouvé, pas d'échec
 
-        // Parcours toutes les cases du plateau pour vérifier si une pièce ennemie menace le roi
+        Case caseRoi = getCaseRoi(couleur);
+        if (caseRoi == null) return false;
+
+
         for (int x = 0; x < SIZE_X; x++) {
             for (int y = 0; y < SIZE_Y; y++) {
                 Piece piece = cases[x][y].getPiece();
                 if (piece != null && !piece.getCouleur().equals(couleur)) {
                     if (piece.peutDeplacer(cases[x][y], caseRoi)) {
-                        return true; // Le roi est en échec si une pièce ennemie peut le capturer
+
+                        return true;
                     }
                 }
             }
         }
-        return false; // Si aucune pièce ennemie ne menace le roi
+        return false;
     }
 
     public boolean estEchecEtMat(String couleur) {
@@ -142,7 +143,7 @@ public class Plateau extends Observable {
 
                         boolean encoreEnEchec = estEnEchec(couleur);
 
-                        // Annulation du coup
+
                         source.setPiece(piece);
                         cible.setPiece(sauvegarde);
                         piece.setCase(ancienneCase);
@@ -157,4 +158,6 @@ public class Plateau extends Observable {
 
         return true;
     }
+
+
 }

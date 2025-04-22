@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.*;
@@ -17,12 +18,14 @@ import modele.*;
  *  (2) Controleur : écouter les évènements clavier et déclencher le traitement adapté sur le modèle (clic position départ -> position arrivée pièce))
  *
  */
-public class Control extends JFrame implements Observer, javax.naming.ldap.Control {
+public class Control extends JFrame implements Observer {
     private Plateau plateau; // référence sur une classe de modèle : permet d'accéder aux données du modèle pour le rafraichissement, permet de communiquer les actions clavier (ou souris)
     private Jeu jeu;
     private final int sizeX; // taille de la grille affichée
     private final int sizeY;
     private static final int pxCase = 50; // nombre de pixel par case
+    private static final int pyCase = 50;
+    private DesCasesAccessibles dec;
     // icones affichées dans la grille
     private ImageIcon icoRoiBlanc, icoRoiNoir;
     private ImageIcon icoReineBlanc, icoReineNoir;
@@ -30,7 +33,7 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
     private ImageIcon icoFouBlanc, icoFouNoir;
     private ImageIcon icoCavalierBlanc, icoCavalierNoir;
     private ImageIcon icoPionBlanc, icoPionNoir;
-
+    private java.util.List<Case> deplacementsPossibles = new ArrayList<>();
 
 
     private Case caseClic1; // mémorisation des cases cliquées
@@ -47,7 +50,6 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
         sizeY = plateau.SIZE_Y;
 
 
-
         chargerLesIcones();
         placerLesComposantsGraphiques();
 
@@ -56,6 +58,7 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
         mettreAJourAffichage();
 
     }
+
     private Case selection = null;
 
     public void caseCliquee(Case c) {
@@ -65,15 +68,17 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
 
             if (piece != null && piece.getCouleur().equals(jeu.getJoueurCourant().getCouleur())) {
                 selection = c;
+                deplacementsPossibles = piece.dec.getMesCA(); // On récupère les cases accessibles
                 System.out.println("Pièce sélectionnée : " + piece + " à la position (" + c.getX() + "," + c.getY() + ")");
             } else {
                 System.out.println("Aucune pièce sélectionnée ou ce n’est pas votre tour.");
+                selection = null;
+                deplacementsPossibles.clear();
             }
         }
         // 2e clic : tentative de déplacement
         else {
             Piece pieceSelectionnee = jeu.getPlateau().getPiece(selection);
-            Piece pieceCible = jeu.getPlateau().getPiece(c);
 
             if (jeu.demandeDeplacementPiece(selection, c)) {
                 System.out.println("Déplacement réussi : " + pieceSelectionnee + " de " + selection + " à " + c);
@@ -81,14 +86,14 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
                 System.out.println("Déplacement invalide de " + pieceSelectionnee + " vers " + c);
             }
 
-            // Réinitialiser après le clic, que le déplacement soit valide ou non
+            // Réinitialiser tout
             selection = null;
+            deplacementsPossibles.clear();
         }
+
+        // Toujours mettre à jour l'affichage après un clic
+        mettreAJourAffichage();
     }
-
-
-
-
 
 
     private void chargerLesIcones() {
@@ -153,10 +158,9 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
                 });
 
 
-
                 jlab.setOpaque(true);
 
-                if ((y%2 == 0 && x%2 == 0) || (y%2 != 0 && x%2 != 0)) {
+                if ((y % 2 == 0 && x % 2 == 0) || (y % 2 != 0 && x % 2 != 0)) {
                     tabJLabel[x][y].setBackground(new Color(245, 245, 220));
                 } else {
                     tabJLabel[x][y].setBackground(new Color(200, 100, 110));
@@ -197,8 +201,17 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
                 } else {
                     tabJLabel[x][y].setIcon(null);
                 }
+                if (deplacementsPossibles.contains(c)) {
+                    tabJLabel[x][y].setBackground(new Color(255, 255, 153));
+                } else if ((y % 2 == 0 && x % 2 == 0) || (y % 2 != 0 && x % 2 != 0)) {
+                    tabJLabel[x][y].setBackground(new Color(245, 245, 220));
+                } else {
+                    tabJLabel[x][y].setBackground(new Color(200, 100, 110));
+                }
             }
+
         }
+
     }
 
 
@@ -221,18 +234,4 @@ public class Control extends JFrame implements Observer, javax.naming.ldap.Contr
 
     }
 
-    @Override
-    public String getID() {
-        return "";
-    }
-
-    @Override
-    public boolean isCritical() {
-        return false;
-    }
-
-    @Override
-    public byte[] getEncodedValue() {
-        return new byte[0];
-    }
 }
