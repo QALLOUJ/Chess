@@ -1,9 +1,14 @@
-package modele;
+package modele.Pieces;
+
+import modele.Case;
+import modele.Piece;
+import modele.decorateur.DecTour;
 
 import java.util.ArrayList;
 
-public class Cavalier extends Piece {
-    public Cavalier(String couleur) {
+public class Tour extends Piece {
+
+    public Tour(String couleur) {
         super(couleur);
     }
 
@@ -11,10 +16,14 @@ public class Cavalier extends Piece {
     public void setCase(Case c) {
         super.setCase(c);
         if (c != null) {
-            this.dec = new DecCavalier(this, c.getPlateau());
+            this.dec = new DecTour(this, c.getPlateau());
         } else {
             this.dec = null;
         }
+    }
+    @Override
+    public String getNom() {
+        return "Tour";
     }
 
     @Override
@@ -24,3 +33,4 @@ public class Cavalier extends Piece {
         return lst.contains(arrive);
     }
 }
+

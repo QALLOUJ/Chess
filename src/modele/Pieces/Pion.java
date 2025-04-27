@@ -1,4 +1,8 @@
-package modele;
+package modele.Pieces;
+
+import modele.Case;
+import modele.Piece;
+import modele.decorateur.DecPion;
 
 import java.util.ArrayList;
 
@@ -19,7 +23,10 @@ public class Pion extends Piece {
         }
     }
 
-
+    @Override
+    public String getNom() {
+        return "Pion";
+    }
     @Override
     public boolean peutDeplacer(Case source, Case arrive) {
         if (dec == null) return false;

@@ -1,10 +1,14 @@
-package modele;
+package modele.decorateur;
+
+import modele.Case;
+import modele.Piece;
+import modele.Plateau;
 
 import java.util.ArrayList;
 
-public class DecFou extends DesCasesAccessibles {
+public class DecRoi extends DesCasesAccessibles {
 
-    public DecFou(Piece piece, Plateau plateau) {
+    public DecRoi(Piece piece, Plateau plateau) {
         super(piece, plateau);
     }
 
@@ -15,24 +19,22 @@ public class DecFou extends DesCasesAccessibles {
         if (caseActuelle == null) return lst;
 
 
-        int[][] directions = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}}; // haut-gauche, haut-droit, bas-gauche, bas-droit
+        int[][] directions = {
+                {-1, 0}, {1, 0}, {0, -1}, {0, 1},
+                {-1, -1}, {-1, 1}, {1, -1}, {1, 1}
+        };
 
         for (int[] direction : directions) {
             int dx = direction[0];
             int dy = direction[1];
 
 
-            Case caseCourante = caseActuelle;
-            while (true) {
-                caseCourante = plateau.getCaseRelative(caseCourante, dx, dy);
-                if (caseCourante == null) break;
+            Case caseCourante = plateau.getCaseRelative(caseActuelle, dx, dy);
+            if (caseCourante != null) {
                 if (caseCourante.estVide()) {
                     lst.add(caseCourante);
                 } else if (caseCourante.contientEnnemi(piece)) {
                     lst.add(caseCourante);
-                    break;
-                } else {
-                    break;
                 }
             }
         }

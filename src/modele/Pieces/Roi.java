@@ -1,4 +1,8 @@
-package modele;
+package modele.Pieces;
+
+import modele.Case;
+import modele.Piece;
+import modele.decorateur.DecRoi;
 
 import java.util.ArrayList;
 
@@ -16,6 +20,10 @@ public class Roi extends Piece {
         } else {
             this.dec = null;
         }
+    }
+    @Override
+    public String getNom() {
+        return "Roi";
     }
 
     @Override

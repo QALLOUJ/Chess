@@ -1,7 +1,11 @@
 package modele;
 
+import Vue.VueEchiquier;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 public class Jeu {
@@ -10,13 +14,54 @@ public class Jeu {
     private Joueur joueurCourant;
     private Plateau plateau;
     private ArrayList<Coup> historique = new ArrayList<>();
+    private Timer timerBlanc;
+    private Timer timerNoir;
+    private int tempsRestantBlanc;
+    private int tempsRestantNoir;
+    private boolean partieEnCours = true;// Pour savoir si la partie est encore en cours
+    private VueEchiquier vueEchiquier;
 
-
-    public Jeu(Plateau plateau) {
+    public Jeu(Plateau plateau, String nomBlanc, String nomNoir, int dureeChronoEnSecondes) {
         this.plateau = plateau;
-        this.joueurBlanc = new Joueur("Blanc", true);
-        this.joueurNoir = new Joueur("Noir", false);
+        this.joueurBlanc = new Joueur(nomBlanc, true);
+        this.joueurNoir = new Joueur(nomNoir, false);
         this.joueurCourant = joueurBlanc;
+
+        this.tempsRestantBlanc = dureeChronoEnSecondes;
+        this.tempsRestantNoir = dureeChronoEnSecondes;
+    }
+
+    public void demarrerChronometre() {
+        ActionListener actionListenerBlanc = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (tempsRestantBlanc > 0 && partieEnCours) {
+                    tempsRestantBlanc--;
+                    VueEchiquier.miseAJourChronoBlanc(tempsRestantBlanc); // Met à jour l'affichage du chrono Blanc
+                } else {
+                    timerBlanc.stop();
+                }
+            }
+        };
+
+        ActionListener actionListenerNoir = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (tempsRestantNoir > 0 && partieEnCours) {
+                    tempsRestantNoir--;
+                    VueEchiquier.miseAJourChronoNoir(tempsRestantNoir); // Met à jour l'affichage du chrono Noir
+                } else {
+                    timerNoir.stop();
+                }
+            }
+        };
+
+        // Initialisation des timers
+        timerBlanc = new Timer(1000, actionListenerBlanc); // 1000 ms = 1 seconde
+        timerNoir = new Timer(1000, actionListenerNoir);
+
+        // Lancer le timer pour Blanc en premier
+        timerBlanc.start();
     }
 
     public Plateau getPlateau() {
@@ -28,8 +73,17 @@ public class Jeu {
     }
 
     public void changerTour() {
-        joueurCourant = (joueurCourant == joueurBlanc) ? joueurNoir : joueurBlanc;
+        if (joueurCourant == joueurBlanc) {
+            timerBlanc.stop();
+            timerNoir.start();
+            joueurCourant = joueurNoir; // <-- AJOUT ICI
+        } else {
+            timerNoir.stop();
+            timerBlanc.start();
+            joueurCourant = joueurBlanc; // <-- AJOUT ICI
+        }
     }
+
 
 
     public boolean demandeDeplacementPiece(Case source, Case arrive) {
@@ -50,7 +104,7 @@ public class Jeu {
         Piece pieceCapturee = arrive.getPiece();
 
         Coup coup = new Coup(piece, source, arrive, pieceCapturee);
-        System.out.println(coup);
+
 
         arrive.setPiece(piece);
         source.setPiece(null);

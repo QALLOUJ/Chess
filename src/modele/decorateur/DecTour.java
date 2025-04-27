@@ -1,4 +1,8 @@
-package modele;
+package modele.decorateur;
+
+import modele.Case;
+import modele.Piece;
+import modele.Plateau;
 
 import java.util.ArrayList;
 

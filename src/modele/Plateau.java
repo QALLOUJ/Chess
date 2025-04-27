@@ -1,5 +1,7 @@
 package modele;
 
+import modele.Pieces.*;
+
 import java.util.ArrayList;
 import java.util.Observable;
 

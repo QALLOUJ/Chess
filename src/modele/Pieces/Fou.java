@@ -1,10 +1,13 @@
-package modele;
+package modele.Pieces;
+
+import modele.Case;
+import modele.Piece;
+import modele.decorateur.DecFou;
 
 import java.util.ArrayList;
 
-public class Reine extends Piece {
-
-    public Reine(String couleur) {
+public class Fou extends Piece {
+    public Fou(String couleur) {
         super(couleur);
     }
 
@@ -12,12 +15,15 @@ public class Reine extends Piece {
     public void setCase(Case c) {
         super.setCase(c);
         if (c != null) {
-            this.dec = new DecReine(this, c.getPlateau());
+            this.dec = new DecFou(this, c.getPlateau());
         } else {
             this.dec = null;
         }
     }
-
+    @Override
+    public String getNom() {
+        return "Fou";
+    }
     @Override
     public boolean peutDeplacer(Case source, Case arrive) {
         if (dec == null) return false;

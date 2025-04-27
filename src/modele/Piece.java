@@ -1,5 +1,7 @@
 package modele;
 
+import modele.decorateur.DesCasesAccessibles;
+
 public abstract class Piece {
     private final String couleur;
     private Case c;
@@ -27,6 +29,7 @@ public abstract class Piece {
     public Plateau getPlateau() {
         return plateau;
     }
+    public abstract String getNom();
 
 
     @Override
