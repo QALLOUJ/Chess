@@ -13,6 +13,7 @@ public class ControleurEchiquier implements CaseClickListener {
     public ControleurEchiquier(Jeu jeu, VueEchiquier vue) {
         this.jeu = jeu;
         this.vue = vue;
+        jeu.setVueEchiquier(vue);
         vue.addCaseClickListener(this);
         jeu.demarrerChronometre(); // Démarre les chronomètres lorsque le contrôleur est initialisé
     }
@@ -55,5 +56,7 @@ public class ControleurEchiquier implements CaseClickListener {
 
         // Toujours mettre à jour l'affichage après un clic
         vue.mettreAJourAffichage();
+
+
     }
 }

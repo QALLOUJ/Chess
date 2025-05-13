@@ -1,6 +1,5 @@
 package Vue;
 
-import Vue.CaseClickListener;
 import modele.*;
 import modele.Pieces.*;
 
@@ -12,7 +11,7 @@ import java.util.*;
 import java.util.List;
 
 public class VueEchiquier extends JFrame implements Observer {
-    private Plateau plateau;
+    private final Plateau plateau;
     private JLabel[][] tabJLabel;
     private final int pxCase = 50, pyCase = 50;
     private final int sizeX, sizeY;
@@ -20,10 +19,12 @@ public class VueEchiquier extends JFrame implements Observer {
     private static JLabel labelChronoNoir;
     private static JLabel labelTour;
     private final List<CaseClickListener> listeners = new ArrayList<>();
+    private JPanel panelCapturesBlanc;
+    private JPanel panelCapturesNoir;
 
     private List<Case> deplacementsPossibles = new ArrayList<>();
-    private List<Piece> piecesCapturesBlanc = new ArrayList<>();
-    private List<Piece> piecesCapturesNoir = new ArrayList<>();
+    private final List<Piece> piecesCapturesBlanc = new ArrayList<>();
+    private final List<Piece> piecesCapturesNoir = new ArrayList<>();
 
     // Icônes
     private ImageIcon icoRoiBlanc, icoRoiNoir, icoReineBlanc, icoReineNoir,
@@ -32,8 +33,14 @@ public class VueEchiquier extends JFrame implements Observer {
 
     public VueEchiquier(Plateau plateau) {
         this.plateau = plateau;
-        this.sizeX = plateau.SIZE_X;
-        this.sizeY = plateau.SIZE_Y;
+        this.sizeX = Plateau.SIZE_X;
+        this.sizeY = Plateau.SIZE_Y;
+        panelCapturesBlanc = new JPanel();
+        panelCapturesNoir = new JPanel();
+
+        // Pour une meilleure organisation
+        panelCapturesBlanc.setLayout(new FlowLayout(FlowLayout.LEFT));
+        panelCapturesNoir.setLayout(new FlowLayout(FlowLayout.LEFT));
 
         plateau.addObserver(this);
         chargerLesIcones();
@@ -66,8 +73,33 @@ public class VueEchiquier extends JFrame implements Observer {
         icoPionNoir = chargerIcone("Images/black-pawn.png");
     }
 
+    private ImageIcon getIconPourPiece(Piece piece) {
+        if (piece == null) {
+            return null;
+        }
+
+        if (piece instanceof Roi) {
+            return piece.getCouleur().equals("blanc") ? icoRoiBlanc : icoRoiNoir;
+        } else if (piece instanceof Reine) {
+            return piece.getCouleur().equals("blanc") ? icoReineBlanc : icoReineNoir;
+        } else if (piece instanceof Tour) {
+            return piece.getCouleur().equals("blanc") ? icoTourBlanc : icoTourNoir;
+        } else if (piece instanceof Fou) {
+            return piece.getCouleur().equals("blanc") ? icoFouBlanc : icoFouNoir;
+        } else if (piece instanceof Cavalier) {
+            return piece.getCouleur().equals("blanc") ? icoCavalierBlanc : icoCavalierNoir;
+        } else if (piece instanceof Pion) {
+            return piece.getCouleur().equals("blanc") ? icoPionBlanc : icoPionNoir;
+        } else {
+            return null;
+        }
+    }
+
     private ImageIcon chargerIcone(String path) {
         ImageIcon icon = new ImageIcon(path);
+        if (icon.getImageLoadStatus() != MediaTracker.COMPLETE) {
+            System.out.println("Erreur de chargement de l'image: " + path);
+        }
         Image img = icon.getImage().getScaledInstance(pxCase, pyCase, Image.SCALE_SMOOTH);
         return new ImageIcon(img);
     }
@@ -129,6 +161,10 @@ public class VueEchiquier extends JFrame implements Observer {
         this.add(grille, BorderLayout.CENTER);
         this.add(panelChronos, BorderLayout.NORTH);
         this.add(panelCaptures, BorderLayout.SOUTH);
+
+        // Ajout des panels de captures
+        panelCaptures.add(panelCapturesBlanc);
+        panelCaptures.add(panelCapturesNoir);
     }
 
     public void setDeplacementsPossibles(List<Case> cases) {
@@ -148,23 +184,24 @@ public class VueEchiquier extends JFrame implements Observer {
 
                 if (piece != null) {
                     String couleur = piece.getCouleur();
-                    if (piece instanceof Roi)
+                    if (piece instanceof Roi) {
                         label.setIcon(couleur.equals("blanc") ? icoRoiBlanc : icoRoiNoir);
-                    else if (piece instanceof Reine)
+                    } else if (piece instanceof Reine) {
                         label.setIcon(couleur.equals("blanc") ? icoReineBlanc : icoReineNoir);
-                    else if (piece instanceof Tour)
+                    } else if (piece instanceof Tour) {
                         label.setIcon(couleur.equals("blanc") ? icoTourBlanc : icoTourNoir);
-                    else if (piece instanceof Fou)
+                    } else if (piece instanceof Fou) {
                         label.setIcon(couleur.equals("blanc") ? icoFouBlanc : icoFouNoir);
-                    else if (piece instanceof Cavalier)
+                    } else if (piece instanceof Cavalier) {
                         label.setIcon(couleur.equals("blanc") ? icoCavalierBlanc : icoCavalierNoir);
-                    else if (piece instanceof Pion)
+                    } else if (piece instanceof Pion) {
                         label.setIcon(couleur.equals("blanc") ? icoPionBlanc : icoPionNoir);
+                    }
                 } else {
                     label.setIcon(null);
                 }
 
-                // coloration
+                // Coloration de la case
                 if (deplacementsPossibles.contains(c)) {
                     label.setBackground(new Color(255, 255, 153));
                 } else {
@@ -177,19 +214,19 @@ public class VueEchiquier extends JFrame implements Observer {
     }
 
     private void mettreAJourCaptures() {
-        String capturesBlanc = "Captures Blanc: ";
+        StringBuilder capturesBlanc = new StringBuilder("Captures Blanc: ");
         for (Piece piece : piecesCapturesBlanc) {
-            capturesBlanc += piece.getNom() + " ";
+            capturesBlanc.append(piece.getNom()).append(" ");
         }
 
-        String capturesNoir = "Captures Noir: ";
+        StringBuilder capturesNoir = new StringBuilder("Captures Noir: ");
         for (Piece piece : piecesCapturesNoir) {
-            capturesNoir += piece.getNom() + " ";
+            capturesNoir.append(piece.getNom()).append(" ");
         }
 
         // Mettre à jour les labels de captures
-        ((JLabel) ((JPanel) this.getContentPane().getComponent(2)).getComponent(0)).setText(capturesBlanc);
-        ((JLabel) ((JPanel) this.getContentPane().getComponent(2)).getComponent(1)).setText(capturesNoir);
+        ((JLabel) ((JPanel) this.getContentPane().getComponent(2)).getComponent(0)).setText(capturesBlanc.toString());
+        ((JLabel) ((JPanel) this.getContentPane().getComponent(2)).getComponent(1)).setText(capturesNoir.toString());
     }
 
     // Méthodes pour mettre à jour les chronomètres
@@ -212,10 +249,22 @@ public class VueEchiquier extends JFrame implements Observer {
     }
 
     public void ajouterCapture(Piece piece) {
+        // Utilise la méthode pour récupérer l'icône de la pièce capturée
+        ImageIcon icone = getIconPourPiece(piece);
+
+        // Crée un JLabel avec l'icône récupérée
+        JLabel labelIcone = new JLabel(icone);
+        labelIcone.setPreferredSize(new Dimension(32, 32)); // Ajuste la taille de l'icône capturée
+
+        // Ajoute le label à la bonne liste de captures en fonction de la couleur de la pièce
         if (piece.getCouleur().equals("blanc")) {
-            piecesCapturesBlanc.add(piece);
+            panelCapturesNoir.add(labelIcone); // Pièce blanche capturée => joueur noir a capturé
         } else {
-            piecesCapturesNoir.add(piece);
+            panelCapturesBlanc.add(labelIcone); // Pièce noire capturée => joueur blanc a capturé
         }
+
+        // Rafraîchit la vue
+        revalidate();
+        repaint();
     }
 }

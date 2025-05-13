@@ -102,6 +102,10 @@ public class Jeu {
         }
 
         Piece pieceCapturee = arrive.getPiece();
+        if (pieceCapturee != null && vueEchiquier != null) {
+            vueEchiquier.ajouterCapture(pieceCapturee);
+        }
+
 
         Coup coup = new Coup(piece, source, arrive, pieceCapturee);
 
@@ -178,4 +182,9 @@ public class Jeu {
 
         return true;
     }
+
+    public void setVueEchiquier(VueEchiquier vueEchiquier) {
+        this.vueEchiquier = vueEchiquier;
+    }
+
 }
