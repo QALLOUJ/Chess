@@ -18,7 +18,7 @@ public class Jeu {
     private Timer timerNoir;
     private int tempsRestantBlanc;
     private int tempsRestantNoir;
-    private boolean partieEnCours = true;// Pour savoir si la partie est encore en cours
+    private boolean partieEnCours = true; // Pour savoir si la partie est encore en cours
     private VueEchiquier vueEchiquier;
 
     public Jeu(Plateau plateau, String nomBlanc, String nomNoir, int dureeChronoEnSecondes) {
@@ -38,6 +38,7 @@ public class Jeu {
                 if (tempsRestantBlanc > 0 && partieEnCours) {
                     tempsRestantBlanc--;
                     VueEchiquier.miseAJourChronoBlanc(tempsRestantBlanc); // Met à jour l'affichage du chrono Blanc
+                    verifierFinPartie();
                 } else {
                     timerBlanc.stop();
                 }
@@ -50,15 +51,19 @@ public class Jeu {
                 if (tempsRestantNoir > 0 && partieEnCours) {
                     tempsRestantNoir--;
                     VueEchiquier.miseAJourChronoNoir(tempsRestantNoir); // Met à jour l'affichage du chrono Noir
+                    verifierFinPartie();
                 } else {
                     timerNoir.stop();
                 }
             }
         };
 
-        // Initialisation des timers
-        timerBlanc = new Timer(1000, actionListenerBlanc); // 1000 ms = 1 seconde
-        timerNoir = new Timer(1000, actionListenerNoir);
+        if (timerBlanc == null) {
+            timerBlanc = new Timer(1000, actionListenerBlanc); // 1000 ms = 1 seconde
+        }
+        if (timerNoir == null) {
+            timerNoir = new Timer(1000, actionListenerNoir);
+        }
 
         // Lancer le timer pour Blanc en premier
         timerBlanc.start();
@@ -73,32 +78,22 @@ public class Jeu {
     }
 
     public void changerTour() {
+        // Arrêter le timer du joueur courant et démarrer celui du joueur adverse
         if (joueurCourant == joueurBlanc) {
             timerBlanc.stop();
             timerNoir.start();
-            joueurCourant = joueurNoir; // <-- AJOUT ICI
+            joueurCourant = joueurNoir;
         } else {
             timerNoir.stop();
             timerBlanc.start();
-            joueurCourant = joueurBlanc; // <-- AJOUT ICI
+            joueurCourant = joueurBlanc;
         }
     }
 
-
-
     public boolean demandeDeplacementPiece(Case source, Case arrive) {
-
         Piece piece = source.getPiece();
-        if (piece == null) {
-            return false; // Si aucune pièce à déplacer
-        }
-
-        if (!piece.getCouleur().equals(joueurCourant.getCouleur())) {
-            return false;
-        }
-
-        if (!piece.peutDeplacer(source, arrive)) {
-            return false;
+        if (piece == null || !piece.getCouleur().equals(joueurCourant.getCouleur()) || !piece.peutDeplacer(source, arrive)) {
+            return false; // Valider que la pièce peut être déplacée
         }
 
         Piece pieceCapturee = arrive.getPiece();
@@ -106,85 +101,74 @@ public class Jeu {
             vueEchiquier.ajouterCapture(pieceCapturee);
         }
 
-
         Coup coup = new Coup(piece, source, arrive, pieceCapturee);
-
-
-        arrive.setPiece(piece);
-        source.setPiece(null);
-
-        piece.setCase(arrive);
+        effectuerDeplacement(source, arrive, piece);
 
         historique.add(coup);
-
-        String gagnant = joueurCourant.getNom();
-
         changerTour();
-
-
         plateau.notifierChangement();
 
-
-        String couleurAdverse = joueurCourant.getCouleur(); // joueurCourant est maintenant l'adversaire
-
-        if (plateau.estEnEchec(couleurAdverse)) {
-
-            JPanel panel = new JPanel();
-            panel.setBackground(new Color(255, 192, 203)); // Rose clair un peu plus doux
-            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-
-            JLabel label = new JLabel("<html><div style='text-align: center;'>"
-                    + "<h1 style='color: white; font-size: 18px;'>♔ <b>Échec, attention !</b> ♚</h1>"
-                    + "<p style='color: white; font-size: 14px;'><strong>Le roi de " + couleurAdverse + " est en échec !</strong></p>"
-                    + "</div></html>");
-            label.setHorizontalAlignment(SwingConstants.CENTER);
-            label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-
-            panel.add(Box.createVerticalStrut(20));
-            panel.add(label);
-            panel.add(Box.createVerticalStrut(20));
-
-
-            JOptionPane.showMessageDialog(null,
-                    panel,
-                    "Attention : Échec",
-                    JOptionPane.INFORMATION_MESSAGE);
-        }
-
-
-        if (plateau.estEchecEtMat(couleurAdverse)) {
-
-            JPanel panel = new JPanel();
-            panel.setBackground(new Color(255, 192, 203)); // Rose clair un peu plus doux
-            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-
-            JLabel label = new JLabel("<html><div style='text-align: center;'>"
-                    + "<h1 style='color: white; font-size: 18px;'>♔ <b>Échec et Mat</b> ♚</h1>"
-                    + "<p style='color: white; font-size: 14px;'><strong>" + gagnant + "</strong> a remporté la partie !</p>"
-                    + "</div></html>");
-            label.setHorizontalAlignment(SwingConstants.CENTER);
-            label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-
-            panel.add(Box.createVerticalStrut(20));
-            panel.add(label);
-            panel.add(Box.createVerticalStrut(20));
-
-
-            JOptionPane.showMessageDialog(null,
-                    panel,
-                    "Fin de la partie",
-                    JOptionPane.INFORMATION_MESSAGE);
-
-            return false;
-        }
+        String couleurAdverse = joueurCourant.getCouleur(); // Adversaire après changement de tour
+        verifierEchecEtMat(couleurAdverse);
 
         return true;
+    }
+
+    private void effectuerDeplacement(Case source, Case arrive, Piece piece) {
+        arrive.setPiece(piece);
+        source.setPiece(null);
+        piece.setCase(arrive);
+    }
+
+    private void verifierEchecEtMat(String couleurAdverse) {
+        if (plateau.estEnEchec(couleurAdverse)) {
+            afficherMessage("Échec, attention !", "Le roi de " + couleurAdverse + " est en échec !");
+        }
+
+        if (plateau.estEchecEtMat(couleurAdverse)) {
+            afficherMessage("Échec et Mat", joueurCourant.getNom() + " a remporté la partie !");
+            finPartie(joueurCourant.getNom() + " a gagné par Échec et Mat !");
+        }
+    }
+
+    private void afficherMessage(String titre, String message) {
+        JPanel panel = new JPanel();
+        panel.setBackground(new Color(255, 192, 203)); // Rose clair un peu plus doux
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        JLabel label = new JLabel("<html><div style='text-align: center;'>"
+                + "<h1 style='color: white; font-size: 18px;'>" + titre + "</h1>"
+                + "<p style='color: white; font-size: 14px;'><strong>" + message + "</strong></p>"
+                + "</div></html>");
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(label);
+        panel.add(Box.createVerticalStrut(20));
+
+        JOptionPane.showMessageDialog(null, panel, titre, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    // Vérifier si le temps est écoulé pour un joueur
+    public void verifierFinPartie() {
+        if (tempsRestantBlanc <= 0) {
+            finPartie("Le joueur noir a gagné, temps écoulé !");
+        } else if (tempsRestantNoir <= 0) {
+            finPartie("Le joueur blanc a gagné, temps écoulé !");
+        }
+    }
+
+    // Fin de la partie
+    public void finPartie(String message) {
+        // Afficher une boîte de dialogue pour annoncer la fin de la partie
+        JOptionPane.showMessageDialog(null, message, "Fin de la partie", JOptionPane.INFORMATION_MESSAGE);
+        partieEnCours = false; // Mettre à jour l'état de la partie pour arrêter le jeu
+        timerBlanc.stop();
+        timerNoir.stop();
     }
 
     public void setVueEchiquier(VueEchiquier vueEchiquier) {
         this.vueEchiquier = vueEchiquier;
     }
-
 }

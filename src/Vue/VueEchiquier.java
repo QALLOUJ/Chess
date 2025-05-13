@@ -7,10 +7,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 
-public class VueEchiquier extends JFrame implements Observer {
+public class VueEchiquier extends JFrame {
     private final Plateau plateau;
     private JLabel[][] tabJLabel;
     private final int pxCase = 50, pyCase = 50;
@@ -19,12 +19,10 @@ public class VueEchiquier extends JFrame implements Observer {
     private static JLabel labelChronoNoir;
     private static JLabel labelTour;
     private final List<CaseClickListener> listeners = new ArrayList<>();
-    private JPanel panelCapturesBlanc;
-    private JPanel panelCapturesNoir;
+    private final JPanel panelCapturesBlanc = new JPanel();
+    private final JPanel panelCapturesNoir = new JPanel();
 
     private List<Case> deplacementsPossibles = new ArrayList<>();
-    private final List<Piece> piecesCapturesBlanc = new ArrayList<>();
-    private final List<Piece> piecesCapturesNoir = new ArrayList<>();
 
     // Icônes
     private ImageIcon icoRoiBlanc, icoRoiNoir, icoReineBlanc, icoReineNoir,
@@ -35,14 +33,7 @@ public class VueEchiquier extends JFrame implements Observer {
         this.plateau = plateau;
         this.sizeX = Plateau.SIZE_X;
         this.sizeY = Plateau.SIZE_Y;
-        panelCapturesBlanc = new JPanel();
-        panelCapturesNoir = new JPanel();
 
-        // Pour une meilleure organisation
-        panelCapturesBlanc.setLayout(new FlowLayout(FlowLayout.LEFT));
-        panelCapturesNoir.setLayout(new FlowLayout(FlowLayout.LEFT));
-
-        plateau.addObserver(this);
         chargerLesIcones();
         placerLesComposantsGraphiques();
         mettreAJourAffichage();
@@ -74,25 +65,17 @@ public class VueEchiquier extends JFrame implements Observer {
     }
 
     private ImageIcon getIconPourPiece(Piece piece) {
-        if (piece == null) {
-            return null;
-        }
+        if (piece == null) return null;
 
-        if (piece instanceof Roi) {
-            return piece.getCouleur().equals("blanc") ? icoRoiBlanc : icoRoiNoir;
-        } else if (piece instanceof Reine) {
-            return piece.getCouleur().equals("blanc") ? icoReineBlanc : icoReineNoir;
-        } else if (piece instanceof Tour) {
-            return piece.getCouleur().equals("blanc") ? icoTourBlanc : icoTourNoir;
-        } else if (piece instanceof Fou) {
-            return piece.getCouleur().equals("blanc") ? icoFouBlanc : icoFouNoir;
-        } else if (piece instanceof Cavalier) {
-            return piece.getCouleur().equals("blanc") ? icoCavalierBlanc : icoCavalierNoir;
-        } else if (piece instanceof Pion) {
-            return piece.getCouleur().equals("blanc") ? icoPionBlanc : icoPionNoir;
-        } else {
-            return null;
-        }
+        return switch (piece.getNom()) {
+            case "Roi" -> piece.getCouleur().equals("blanc") ? icoRoiBlanc : icoRoiNoir;
+            case "Reine" -> piece.getCouleur().equals("blanc") ? icoReineBlanc : icoReineNoir;
+            case "Tour" -> piece.getCouleur().equals("blanc") ? icoTourBlanc : icoTourNoir;
+            case "Fou" -> piece.getCouleur().equals("blanc") ? icoFouBlanc : icoFouNoir;
+            case "Cavalier" -> piece.getCouleur().equals("blanc") ? icoCavalierBlanc : icoCavalierNoir;
+            case "Pion" -> piece.getCouleur().equals("blanc") ? icoPionBlanc : icoPionNoir;
+            default -> null;
+        };
     }
 
     private ImageIcon chargerIcone(String path) {
@@ -110,7 +93,6 @@ public class VueEchiquier extends JFrame implements Observer {
         setSize(sizeX * pxCase, sizeY * pyCase + 120);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Panel pour la grille de jeu
         JPanel grille = new JPanel(new GridLayout(sizeY, sizeX));
         tabJLabel = new JLabel[sizeX][sizeY];
 
@@ -118,6 +100,7 @@ public class VueEchiquier extends JFrame implements Observer {
             for (int x = 0; x < sizeX; x++) {
                 JLabel jlab = new JLabel();
                 jlab.setOpaque(true);
+                jlab.setHorizontalAlignment(SwingConstants.CENTER);
                 final int xx = x, yy = y;
 
                 jlab.addMouseListener(new MouseAdapter() {
@@ -128,80 +111,52 @@ public class VueEchiquier extends JFrame implements Observer {
 
                 Color color = (x + y) % 2 == 0 ? new Color(245, 245, 220) : new Color(200, 100, 110);
                 jlab.setBackground(color);
+                jlab.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
                 tabJLabel[x][y] = jlab;
                 grille.add(jlab);
             }
         }
 
-        // Panel pour les chronomètres et les noms
-        JPanel panelChronos = new JPanel();
-        panelChronos.setLayout(new FlowLayout(FlowLayout.CENTER));
-
-        // Initialisation des chronomètres et noms
+        JPanel panelChronos = new JPanel(new FlowLayout(FlowLayout.CENTER));
         labelChronoBlanc = new JLabel("Blanc: 05:00");
         labelChronoNoir = new JLabel("Noir: 05:00");
         labelTour = new JLabel("C'est au tour du joueur Blanc");
-
         panelChronos.add(labelChronoBlanc);
         panelChronos.add(labelChronoNoir);
         panelChronos.add(labelTour);
 
-        // Panel pour les pièces capturées
-        JPanel panelCaptures = new JPanel();
-        panelCaptures.setLayout(new GridLayout(1, 2));
+        JPanel panelCaptures = new JPanel(new GridLayout(1, 2));
 
-        // Label pour les pièces capturées
-        JLabel labelCapturesBlanc = new JLabel("Captures Blanc : ");
-        JLabel labelCapturesNoir = new JLabel("Captures Noir : ");
-        panelCaptures.add(labelCapturesBlanc);
-        panelCaptures.add(labelCapturesNoir);
+        JPanel blocBlanc = new JPanel(new BorderLayout());
+        blocBlanc.add(new JLabel("Captures Blanc:"), BorderLayout.NORTH);
+        panelCapturesBlanc.setLayout(new FlowLayout(FlowLayout.LEFT));
+        blocBlanc.add(panelCapturesBlanc, BorderLayout.CENTER);
 
-        // Ajout des panels à la fenêtre
+        JPanel blocNoir = new JPanel(new BorderLayout());
+        blocNoir.add(new JLabel("Captures Noir:"), BorderLayout.NORTH);
+        panelCapturesNoir.setLayout(new FlowLayout(FlowLayout.LEFT));
+        blocNoir.add(panelCapturesNoir, BorderLayout.CENTER);
+
+        panelCaptures.add(blocBlanc);
+        panelCaptures.add(blocNoir);
+
         this.add(grille, BorderLayout.CENTER);
         this.add(panelChronos, BorderLayout.NORTH);
         this.add(panelCaptures, BorderLayout.SOUTH);
-
-        // Ajout des panels de captures
-        panelCaptures.add(panelCapturesBlanc);
-        panelCaptures.add(panelCapturesNoir);
     }
 
     public void setDeplacementsPossibles(List<Case> cases) {
         this.deplacementsPossibles = cases;
     }
 
-    public void update(Observable o, Object arg) {
-        mettreAJourAffichage();
-    }
-
     public void mettreAJourAffichage() {
         for (int x = 0; x < sizeX; x++) {
             for (int y = 0; y < sizeY; y++) {
                 Case c = plateau.getCase(x, y);
-                Piece piece = c.getPiece();
                 JLabel label = tabJLabel[x][y];
+                label.setIcon(getIconPourPiece(c.getPiece()));
 
-                if (piece != null) {
-                    String couleur = piece.getCouleur();
-                    if (piece instanceof Roi) {
-                        label.setIcon(couleur.equals("blanc") ? icoRoiBlanc : icoRoiNoir);
-                    } else if (piece instanceof Reine) {
-                        label.setIcon(couleur.equals("blanc") ? icoReineBlanc : icoReineNoir);
-                    } else if (piece instanceof Tour) {
-                        label.setIcon(couleur.equals("blanc") ? icoTourBlanc : icoTourNoir);
-                    } else if (piece instanceof Fou) {
-                        label.setIcon(couleur.equals("blanc") ? icoFouBlanc : icoFouNoir);
-                    } else if (piece instanceof Cavalier) {
-                        label.setIcon(couleur.equals("blanc") ? icoCavalierBlanc : icoCavalierNoir);
-                    } else if (piece instanceof Pion) {
-                        label.setIcon(couleur.equals("blanc") ? icoPionBlanc : icoPionNoir);
-                    }
-                } else {
-                    label.setIcon(null);
-                }
-
-                // Coloration de la case
                 if (deplacementsPossibles.contains(c)) {
                     label.setBackground(new Color(255, 255, 153));
                 } else {
@@ -209,39 +164,22 @@ public class VueEchiquier extends JFrame implements Observer {
                 }
             }
         }
-        // Mise à jour des pièces capturées
-        mettreAJourCaptures();
+        revalidate();
+        repaint();
     }
 
-    private void mettreAJourCaptures() {
-        StringBuilder capturesBlanc = new StringBuilder("Captures Blanc: ");
-        for (Piece piece : piecesCapturesBlanc) {
-            capturesBlanc.append(piece.getNom()).append(" ");
-        }
-
-        StringBuilder capturesNoir = new StringBuilder("Captures Noir: ");
-        for (Piece piece : piecesCapturesNoir) {
-            capturesNoir.append(piece.getNom()).append(" ");
-        }
-
-        // Mettre à jour les labels de captures
-        ((JLabel) ((JPanel) this.getContentPane().getComponent(2)).getComponent(0)).setText(capturesBlanc.toString());
-        ((JLabel) ((JPanel) this.getContentPane().getComponent(2)).getComponent(1)).setText(capturesNoir.toString());
-    }
-
-    // Méthodes pour mettre à jour les chronomètres
     public static void miseAJourChronoBlanc(int temps) {
-        int minutes = temps / 60;
-        int secondes = temps % 60;
-        String tempsFormatte = String.format("%02d:%02d", minutes, secondes);
-        labelChronoBlanc.setText("Blanc: " + tempsFormatte);
+        labelChronoBlanc.setText("Blanc: " + formatTemps(temps));
     }
 
     public static void miseAJourChronoNoir(int temps) {
+        labelChronoNoir.setText("Noir: " + formatTemps(temps));
+    }
+
+    private static String formatTemps(int temps) {
         int minutes = temps / 60;
         int secondes = temps % 60;
-        String tempsFormatte = String.format("%02d:%02d", minutes, secondes);
-        labelChronoNoir.setText("Noir: " + tempsFormatte);
+        return String.format("%02d:%02d", minutes, secondes);
     }
 
     public static void changerTour(String joueur) {
@@ -249,21 +187,14 @@ public class VueEchiquier extends JFrame implements Observer {
     }
 
     public void ajouterCapture(Piece piece) {
-        // Utilise la méthode pour récupérer l'icône de la pièce capturée
-        ImageIcon icone = getIconPourPiece(piece);
+        JLabel labelIcone = new JLabel(getIconPourPiece(piece));
+        labelIcone.setPreferredSize(new Dimension(32, 32));
 
-        // Crée un JLabel avec l'icône récupérée
-        JLabel labelIcone = new JLabel(icone);
-        labelIcone.setPreferredSize(new Dimension(32, 32)); // Ajuste la taille de l'icône capturée
-
-        // Ajoute le label à la bonne liste de captures en fonction de la couleur de la pièce
         if (piece.getCouleur().equals("blanc")) {
-            panelCapturesNoir.add(labelIcone); // Pièce blanche capturée => joueur noir a capturé
+            panelCapturesNoir.add(labelIcone);
         } else {
-            panelCapturesBlanc.add(labelIcone); // Pièce noire capturée => joueur blanc a capturé
+            panelCapturesBlanc.add(labelIcone);
         }
-
-        // Rafraîchit la vue
         revalidate();
         repaint();
     }
