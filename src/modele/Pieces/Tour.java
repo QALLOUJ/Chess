@@ -32,5 +32,15 @@ public class Tour extends Piece {
         ArrayList<Case> lst = dec.getMesCA();
         return lst.contains(arrive);
     }
+    private boolean aBouge = false;
+
+    public boolean getABouge() {
+        return aBouge;
+    }
+
+    public void setABouge(boolean b) {
+        aBouge = b;
+    }
+
 }
 

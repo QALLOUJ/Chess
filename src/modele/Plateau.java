@@ -109,11 +109,11 @@ public class Plateau extends Observable {
             for (int y = 0; y < SIZE_Y; y++) {
                 Piece piece = cases[x][y].getPiece();
                 if (piece != null && !piece.getCouleur().equals(couleur)) {
-                    if (piece.peutDeplacer(cases[x][y], caseRoi)) {
-
+                    if (piece.peutAttaquer(cases[x][y], caseRoi)) {
                         return true;
                     }
                 }
+
             }
         }
         return false;

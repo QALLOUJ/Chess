@@ -24,7 +24,16 @@ public abstract class Piece {
 
     public void setCase(Case c) {
         this.c = c;
+        if (c != null) {
+            this.plateau = c.getPlateau(); // ← AJOUT OBLIGATOIRE !!!
+        }
     }
+
+    public boolean peutAttaquer(Case source, Case arrive) {
+
+        return peutDeplacer(source, arrive);
+    }
+
 
     public Plateau getPlateau() {
         return plateau;

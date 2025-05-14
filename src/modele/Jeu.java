@@ -1,4 +1,7 @@
 package modele;
+import modele.Pieces.Roi;
+import modele.Pieces.Tour;
+
 
 import Vue.VueEchiquier;
 import modele.Pieces.Pion;
@@ -109,6 +112,30 @@ public class Jeu {
         effectuerDeplacement(source, arrive, piece);
 
         historique.add(coup);
+        if (piece instanceof Roi) {
+            int dx = arrive.getX() - source.getX();
+            if (Math.abs(dx) == 2) { // roque détecté
+                int y = source.getY();
+                if (dx > 0) { // petit roque
+                    Case caseTour = plateau.getCase(7, y);
+                    Case caseTourDest = plateau.getCase(5, y);
+                    Piece tour = caseTour.getPiece();
+                    caseTourDest.setPiece(tour);
+                    caseTour.setPiece(null);
+                    tour.setCase(caseTourDest);
+                    ((Tour) tour).setABouge(true);
+                } else { // grand roque
+                    Case caseTour = plateau.getCase(0, y);
+                    Case caseTourDest = plateau.getCase(3, y);
+                    Piece tour = caseTour.getPiece();
+                    caseTourDest.setPiece(tour);
+                    caseTour.setPiece(null);
+                    tour.setCase(caseTourDest);
+                    ((Tour) tour).setABouge(true);
+                }
+            }
+        }
+
 
 
         if (piece instanceof Pion) {
@@ -159,6 +186,12 @@ public class Jeu {
         arrive.setPiece(piece);
         source.setPiece(null);
         piece.setCase(arrive);
+        if (piece instanceof Roi) {
+            ((Roi) piece).setABouge(true);
+        } else if (piece instanceof Tour) {
+            ((Tour) piece).setABouge(true);
+        }
+
     }
 
     private void verifierEchecEtMat(String couleurAdverse) {
