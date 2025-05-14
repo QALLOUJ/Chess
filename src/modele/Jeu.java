@@ -1,6 +1,8 @@
 package modele;
 
 import Vue.VueEchiquier;
+import modele.Pieces.Pion;
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -107,10 +109,47 @@ public class Jeu {
         effectuerDeplacement(source, arrive, piece);
 
         historique.add(coup);
+
+
+        if (piece instanceof Pion) {
+            int lignePromotion = piece.getCouleur().equals("blanc") ? 0 : 7;
+            if (arrive.getY() == lignePromotion) {
+                String[] options = {"Reine", "Tour", "Fou", "Cavalier"};
+                String choix = (String) JOptionPane.showInputDialog(
+                        null,
+                        "Choisissez une pièce pour la promotion :",
+                        "Promotion du pion",
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        options,
+                        options[0]
+                );
+
+                Piece nouvellePiece = null;
+                switch (choix) {
+                    case "Reine" -> nouvellePiece = new modele.Pieces.Reine(piece.getCouleur());
+                    case "Tour" -> nouvellePiece = new modele.Pieces.Tour(piece.getCouleur());
+                    case "Fou" -> nouvellePiece = new modele.Pieces.Fou(piece.getCouleur());
+                    case "Cavalier" -> nouvellePiece = new modele.Pieces.Cavalier(piece.getCouleur());
+                    default -> nouvellePiece = new modele.Pieces.Reine(piece.getCouleur());
+                }
+
+                arrive.setPiece(nouvellePiece);
+                nouvellePiece.setCase(arrive);
+            }
+        }
+
+// 🔄 tour suivant
         changerTour();
         plateau.notifierChangement();
 
-        String couleurAdverse = joueurCourant.getCouleur(); // Adversaire après changement de tour
+// 💥 vérifier échec et mat
+        String couleurAdverse = joueurCourant.getCouleur();
+        verifierEchecEtMat(couleurAdverse);
+
+
+        couleurAdverse = joueurCourant.getCouleur();
+        // Adversaire après changement de tour
         verifierEchecEtMat(couleurAdverse);
 
         return true;
