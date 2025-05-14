@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
+
 public class Jeu {
     private Joueur joueurBlanc;
     private Joueur joueurNoir;
@@ -76,6 +77,7 @@ public class Jeu {
     public Joueur getJoueurCourant() {
         return joueurCourant;
     }
+
 
     public void changerTour() {
         // Arrêter le timer du joueur courant et démarrer celui du joueur adverse
@@ -166,9 +168,23 @@ public class Jeu {
         partieEnCours = false; // Mettre à jour l'état de la partie pour arrêter le jeu
         timerBlanc.stop();
         timerNoir.stop();
+        sauvegarderEnPGN("partie.pgn", "0-1");  // 1-0 pour blanc, 0-1 pour noir, 1/2-1/2 pour nul
+
     }
 
     public void setVueEchiquier(VueEchiquier vueEchiquier) {
         this.vueEchiquier = vueEchiquier;
     }
+
+    public Joueur getJoueurNoir() {
+        return joueurNoir;
+    }
+
+    public Joueur getJoueurBlanc() {
+        return joueurBlanc;
+    }
+    public void sauvegarderEnPGN(String chemin, String resultat) {
+        modele.PGNExporter.exporter(this, historique, chemin, resultat);
+    }
+
 }

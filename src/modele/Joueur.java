@@ -24,4 +24,5 @@ public class Joueur {
     public boolean estBlanc() {
         return "blanc".equals(couleur);
     }
+
 }

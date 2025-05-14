@@ -12,6 +12,18 @@ public class Coup {
         this.caseArrivee = caseArrivee;
         this.pieceCapturee = pieceCapturee;
     }
+    public Piece getPieceJouee() {
+        return pieceJouee;
+    }
+
+    public Case getCaseDepart() {
+        return caseDepart;
+    }
+
+    public Case getCaseArrivee() {
+        return caseArrivee;
+    }
+
 
 
 
