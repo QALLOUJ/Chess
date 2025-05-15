@@ -104,9 +104,27 @@ public class Jeu {
         }
 
         Piece pieceCapturee = arrive.getPiece();
+        // cas spécial : prise en passant
+        if (piece instanceof Pion && arrive.estVide()) {
+            int dx = arrive.getX() - source.getX();
+            int dy = arrive.getY() - source.getY();
+
+            if (Math.abs(dx) == 1 && dy == (piece.getCouleur().equals("blanc") ? -1 : 1)) {
+                Case casePionPris = plateau.getCase(arrive.getX(), source.getY());
+                pieceCapturee = casePionPris.getPiece();
+                casePionPris.setPiece(null); // retirer le pion capturé
+            }
+        }
+
+// ici seulement : afficher la pièce capturée (prise en passant ou normale)
         if (pieceCapturee != null && vueEchiquier != null) {
             vueEchiquier.ajouterCapture(pieceCapturee);
         }
+
+        if (pieceCapturee != null && vueEchiquier != null) {
+            vueEchiquier.ajouterCapture(pieceCapturee);
+        }
+
 
         Coup coup = new Coup(piece, source, arrive, pieceCapturee);
         effectuerDeplacement(source, arrive, piece);
@@ -258,5 +276,16 @@ public class Jeu {
     public void sauvegarderEnPGN(String chemin, String resultat) {
         modele.PGNExporter.exporter(this, historique, chemin, resultat);
     }
+    public ArrayList<Coup> getHistorique() {
+        return historique;
+    }
+
+    public Coup getDernierCoup() {
+        if (!historique.isEmpty()) {
+            return historique.get(historique.size() - 1);
+        }
+        return null;
+    }
+
 
 }

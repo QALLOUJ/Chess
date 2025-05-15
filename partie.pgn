@@ -1,8 +1,8 @@
 [Event "Partie d'échecs"]
 [Site "Local"]
-[Date "2025-05-13"]
-[White "Blanc"]
-[Black "Noir"]
+[Date "2025-05-15"]
+[White "wwwwwww"]
+[Black "ss"]
 [Result "0-1"]
 
-1. e4 c5 2. g4 a5 3. c3 f5 4. exf5 c4 5. Nf3 Nh6 6. g5 hxf5 7. Ne5 Ne3 8. dxe3 a4 9. h3 h5 10. exd7 h4 11. dxf8 Nd7 12. fxd7 Rf8 13. dxf8 e5 14. e4 exf8 15. g6 cxh3 16. hxh3 Kf7 17. gxf7 Ra6 18. ff8=Q dxf8 19. Rf3 fxf3 20. dxf3 Rf6 21. fxf6 gxf6 22. f4 exf4 23. e5 fxe5 24. Kf2 b6 25. Kf3 h3 26. fxf4 a3 27. fxe5 b5 28. Kd4 b4 29. cxb4 h2 30. Bh3 hh1=Q 31. Bf1 c3 32. dxc3 axb2 33. cxb2 0-1
+1. c4 c5 2. e4 e5 3. f4 f5 4. fxe5 g5 5. g4 f4 6. Nh3 f3 7. Bd3 h5 8. O-O 0-1

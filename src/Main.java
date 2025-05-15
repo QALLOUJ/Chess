@@ -58,6 +58,8 @@ public class Main {
             // Création du plateau et du jeu
             Plateau plateau = new Plateau(8, 8);
             Jeu jeu = new Jeu(plateau, nomBlanc, nomNoir, dureeEnSecondes);
+            plateau.setJeu(jeu); // connecter le plateau au jeu
+
 
             // Création de la vue et du contrôleur
             VueEchiquier vue = new VueEchiquier(plateau);

@@ -98,6 +98,16 @@ public class Plateau extends Observable {
         }
         return null;
     }
+    private Jeu jeu;
+
+    public void setJeu(Jeu jeu) {
+        this.jeu = jeu;
+    }
+
+    public Jeu getJeu() {
+        return this.jeu;
+    }
+
 
     public boolean estEnEchec(String couleur) {
 
