@@ -107,6 +107,41 @@ public class Plateau extends Observable {
     public Jeu getJeu() {
         return this.jeu;
     }
+    public boolean estPat(String couleur) {
+        if (estEnEchec(couleur)) return false;
+
+        for (int x = 0; x < SIZE_X; x++) {
+            for (int y = 0; y < SIZE_Y; y++) {
+                Piece piece = cases[x][y].getPiece();
+                if (piece != null && piece.getCouleur().equals(couleur) && piece.dec != null) {
+                    Case source = cases[x][y];
+                    ArrayList<Case> destinations = piece.dec.getMesCA();
+                    for (Case cible : destinations) {
+                        if (cible == null) continue;
+
+                        Piece pieceCapturee = cible.getPiece();
+                        Case ancienneCase = piece.getCase();
+
+                        cible.setPiece(piece);
+                        source.setPiece(null);
+                        piece.setCase(cible);
+
+                        boolean roiEnEchec = estEnEchec(couleur);
+
+                        source.setPiece(piece);
+                        cible.setPiece(pieceCapturee);
+                        piece.setCase(ancienneCase);
+
+                        if (!roiEnEchec) {
+                            return false; // coup légal possible => pas pat
+                        }
+                    }
+                }
+            }
+        }
+        return true; // aucun coup légal et roi pas en échec => pat
+    }
+
 
 
     public boolean estEnEchec(String couleur) {
@@ -145,7 +180,8 @@ public class Plateau extends Observable {
                     for (Case cible : destinations) {
                         if (cible == null) continue;
 
-                        Piece sauvegarde = cible.getPiece();
+                        // Sauvegarde de l'état du plateau
+                        Piece pieceCapturee = cible.getPiece();
                         Case ancienneCase = piece.getCase();
 
                         // Simulation du coup
@@ -153,23 +189,26 @@ public class Plateau extends Observable {
                         source.setPiece(null);
                         piece.setCase(cible);
 
-                        boolean encoreEnEchec = estEnEchec(couleur);
+                        // Vérifier si roi est en échec après ce coup
+                        boolean roiEnEchec = estEnEchec(couleur);
 
-
+                        // Annuler la simulation (restauration)
                         source.setPiece(piece);
-                        cible.setPiece(sauvegarde);
+                        cible.setPiece(pieceCapturee);
                         piece.setCase(ancienneCase);
 
-                        if (!encoreEnEchec) {
-                            return false;
+                        if (!roiEnEchec) {
+                            return false; // Il y a un coup légal possible => pas échec et mat
                         }
                     }
                 }
             }
         }
 
-        return true;
+        return true; // aucun coup légal trouvé, donc échec et mat
     }
 
 
 }
+
+

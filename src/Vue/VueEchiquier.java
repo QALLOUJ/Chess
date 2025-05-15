@@ -185,6 +185,13 @@ public class VueEchiquier extends JFrame {
     public static void changerTour(String joueur) {
         labelTour.setText("C'est au tour du joueur " + joueur);
     }
+    public void desactiverPlateau() {
+        for (int x = 0; x < sizeX; x++) {
+            for (int y = 0; y < sizeY; y++) {
+                tabJLabel[x][y].setEnabled(false);
+            }
+        }
+    }
 
     public void ajouterCapture(Piece piece) {
         JLabel labelIcone = new JLabel(getIconPourPiece(piece));
@@ -198,4 +205,5 @@ public class VueEchiquier extends JFrame {
         revalidate();
         repaint();
     }
+
 }

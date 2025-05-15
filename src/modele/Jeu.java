@@ -220,7 +220,11 @@ public class Jeu {
         if (plateau.estEchecEtMat(couleurAdverse)) {
             afficherMessage("Échec et Mat", joueurCourant.getNom() + " a remporté la partie !");
             finPartie(joueurCourant.getNom() + " a gagné par Échec et Mat !");
+        } else if (plateau.estPat(couleurAdverse)) {
+            afficherMessage("Pat", "La partie est nulle par pat.");
+            finPartie("Partie nulle par pat.");
         }
+
     }
 
     private void afficherMessage(String titre, String message) {
@@ -253,14 +257,30 @@ public class Jeu {
 
     // Fin de la partie
     public void finPartie(String message) {
-        // Afficher une boîte de dialogue pour annoncer la fin de la partie
-        JOptionPane.showMessageDialog(null, message, "Fin de la partie", JOptionPane.INFORMATION_MESSAGE);
-        partieEnCours = false; // Mettre à jour l'état de la partie pour arrêter le jeu
+        partieEnCours = false;
         timerBlanc.stop();
         timerNoir.stop();
-        sauvegarderEnPGN("partie.pgn", "0-1");  // 1-0 pour blanc, 0-1 pour noir, 1/2-1/2 pour nul
+
+        // joli message façon chess.com
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(Color.BLACK);
+
+        JLabel titre = new JLabel("<html><div style='text-align: center;'><h2 style='color:white;'>" + message + "</h2></div></html>");
+        titre.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(titre);
+        panel.add(Box.createVerticalStrut(20));
+
+        JOptionPane.showMessageDialog(null, panel, "🎉 Fin de la Partie 🎉", JOptionPane.INFORMATION_MESSAGE);
+
+        // on désactive toute interaction
+        vueEchiquier.setEnabled(false); // désactive les clics
+        vueEchiquier.setFocusable(false);
+        vueEchiquier.desactiverPlateau();
 
     }
+
 
     public void setVueEchiquier(VueEchiquier vueEchiquier) {
         this.vueEchiquier = vueEchiquier;
@@ -286,6 +306,12 @@ public class Jeu {
         }
         return null;
     }
+    public boolean isPartieEnCours() {
+        return partieEnCours;
+    }
+
+
+
 
 
 }
