@@ -1,72 +1,82 @@
 import Vue.VueEchiquier;
+import Vue.VueConsole;
 import controleur.ControleurEchiquier;
 import modele.Jeu;
 import modele.Plateau;
-
 import javax.swing.*;
-import java.awt.*;
-
 public class Main {
-
     public static void main(String[] args) {
-        // Créer le panneau de saisie avec les champs pour les noms des joueurs et le chrono
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        // Choix du mode de jeu
+        String[] options = {"Console", "Graphique"};
+        int choix = JOptionPane.showOptionDialog(
+                null,
+                "Choisissez le mode de jeu",
+                "Mode",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
 
-        JTextField nomBlancField = new JTextField(20);
-        JTextField nomNoirField = new JTextField(20);
-        JTextField chronoField = new JTextField(5);
-
-        panel.add(new JLabel("Nom du joueur Blanc :"));
-        panel.add(nomBlancField);
-        panel.add(new JLabel("Nom du joueur Noir :"));
-        panel.add(nomNoirField);
-        panel.add(new JLabel("Durée du chrono par joueur (en minutes) :"));
-        panel.add(chronoField);
-
-        // Afficher le panneau dans un seul JOptionPane
-        int option = JOptionPane.showConfirmDialog(null, panel, "Paramètres de la partie", JOptionPane.OK_CANCEL_OPTION);
-
-        // Si l'utilisateur a cliqué sur OK
-        if (option == JOptionPane.OK_OPTION) {
-            String nomBlanc = nomBlancField.getText().trim();
-            String nomNoir = nomNoirField.getText().trim();
-            String chronoInput = chronoField.getText().trim();
-
-            // Validation des noms
-            if (nomBlanc.isEmpty()) {
-                nomBlanc = "Blanc";
-            }
-            if (nomNoir.isEmpty()) {
-                nomNoir = "Noir";
-            }
-
-            // Validation de la durée du chrono
-            int dureeMinutes = 5; // valeur par défaut
-            try {
-                dureeMinutes = Integer.parseInt(chronoInput);
-                if (dureeMinutes <= 0) {
-                    JOptionPane.showMessageDialog(null, "Valeur invalide. 5 minutes seront utilisées par défaut.");
-                    dureeMinutes = 5;
-                }
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "Entrée invalide. 5 minutes seront utilisées par défaut.");
-            }
-
-            int dureeEnSecondes = dureeMinutes * 60;
-
-            // Création du plateau et du jeu
+        if (choix == 0) {
+            // Mode console
             Plateau plateau = new Plateau(8, 8);
-            Jeu jeu = new Jeu(plateau, nomBlanc, nomNoir, dureeEnSecondes);
-            plateau.setJeu(jeu); // connecter le plateau au jeu
+            Jeu jeu = new Jeu(plateau, "Blanc", "Noir", 300); // noms et temps par défaut
+            plateau.setJeu(jeu);
 
+            VueConsole vueConsole = new VueConsole(jeu);
+            vueConsole.lancer();  // démarre la boucle console
+        } else if (choix == 1) {
+            // Mode graphique
+            JPanel panel = new JPanel();
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-            // Création de la vue et du contrôleur
-            VueEchiquier vue = new VueEchiquier(plateau);
-            ControleurEchiquier controleur = new ControleurEchiquier(jeu, vue);
+            JTextField nomBlancField = new JTextField(20);
+            JTextField nomNoirField = new JTextField(20);
+            JTextField chronoField = new JTextField(5);
 
-            vue.setVisible(true);
-            jeu.demarrerChronometre(); // démarre le chrono après affichage
+            panel.add(new JLabel("Nom du joueur Blanc :"));
+            panel.add(nomBlancField);
+            panel.add(new JLabel("Nom du joueur Noir :"));
+            panel.add(nomNoirField);
+            panel.add(new JLabel("Durée du chrono par joueur (en minutes) :"));
+            panel.add(chronoField);
+
+            int option = JOptionPane.showConfirmDialog(null, panel, "Paramètres de la partie", JOptionPane.OK_CANCEL_OPTION);
+
+            if (option == JOptionPane.OK_OPTION) {
+                String nomBlanc = nomBlancField.getText().trim();
+                String nomNoir = nomNoirField.getText().trim();
+                String chronoInput = chronoField.getText().trim();
+
+                if (nomBlanc.isEmpty()) nomBlanc = "Blanc";
+                if (nomNoir.isEmpty()) nomNoir = "Noir";
+
+                int dureeMinutes = 5;
+                try {
+                    dureeMinutes = Integer.parseInt(chronoInput);
+                    if (dureeMinutes <= 0) {
+                        JOptionPane.showMessageDialog(null, "Durée invalide. 5 minutes utilisées.");
+                        dureeMinutes = 5;
+                    }
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "Entrée invalide. 5 minutes utilisées.");
+                }
+
+                int dureeEnSecondes = dureeMinutes * 60;
+
+                Plateau plateau = new Plateau(8, 8);
+                Jeu jeu = new Jeu(plateau, nomBlanc, nomNoir, dureeEnSecondes);
+                plateau.setJeu(jeu);
+
+                VueEchiquier vue = new VueEchiquier(plateau, nomBlanc, nomNoir);
+                new ControleurEchiquier(jeu, vue);
+
+                vue.setVisible(true);
+                jeu.demarrerChronometre();
+            }
         }
     }
+
 }

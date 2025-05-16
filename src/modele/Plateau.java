@@ -3,6 +3,7 @@ package modele;
 import modele.Pieces.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 
 public class Plateau extends Observable {
@@ -163,6 +164,11 @@ public class Plateau extends Observable {
         }
         return false;
     }
+    public List<Case> getPossibleMoves(Piece piece) {
+        if (piece == null || piece.dec == null) return new ArrayList<>();
+        return new ArrayList<>(piece.dec.getMesCA());
+    }
+
 
     public boolean estEchecEtMat(String couleur) {
         if (!estEnEchec(couleur)) {

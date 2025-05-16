@@ -1,40 +1,47 @@
 package Vue;
-
 import modele.*;
 import modele.Pieces.*;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-
 public class VueEchiquier extends JFrame {
     private final Plateau plateau;
     private JLabel[][] tabJLabel;
     private final int pxCase = 50, pyCase = 50;
     private final int sizeX, sizeY;
-    private static JLabel labelChronoBlanc;
-    private static JLabel labelChronoNoir;
-    private static JLabel labelTour;
+    private JLabel labelChronoBlanc;  // plus static
+    private JLabel labelChronoNoir;   // plus static
+    private JLabel labelTour;          // plus static
     private final List<CaseClickListener> listeners = new ArrayList<>();
+
     private final JPanel panelCapturesBlanc = new JPanel();
     private final JPanel panelCapturesNoir = new JPanel();
 
     private List<Case> deplacementsPossibles = new ArrayList<>();
 
-    // Icônes
+    // Icônes des pièces
     private ImageIcon icoRoiBlanc, icoRoiNoir, icoReineBlanc, icoReineNoir,
             icoTourBlanc, icoTourNoir, icoFouBlanc, icoFouNoir,
             icoCavalierBlanc, icoCavalierNoir, icoPionBlanc, icoPionNoir;
 
-    public VueEchiquier(Plateau plateau) {
+    // Labels noms joueurs (à initialiser dynamiquement)
+    private JLabel labelNomBlanc;
+    private JLabel labelNomNoir;
+
+    public VueEchiquier(Plateau plateau, String nomBlanc, String nomNoir) {
         this.plateau = plateau;
         this.sizeX = Plateau.SIZE_X;
         this.sizeY = Plateau.SIZE_Y;
 
         chargerLesIcones();
+
+        // Initialiser labels noms joueurs
+        labelNomBlanc = new JLabel("Blanc : " + nomBlanc);
+        labelNomNoir = new JLabel("Noir : " + nomNoir);
+
         placerLesComposantsGraphiques();
         mettreAJourAffichage();
     }
@@ -90,7 +97,6 @@ public class VueEchiquier extends JFrame {
     private void placerLesComposantsGraphiques() {
         setTitle("Jeu d'Échecs");
         setResizable(false);
-        setSize(sizeX * pxCase, sizeY * pyCase + 120);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel grille = new JPanel(new GridLayout(sizeY, sizeX));
@@ -118,6 +124,24 @@ public class VueEchiquier extends JFrame {
             }
         }
 
+        JPanel panelNomCapturesNoir = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+        panelNomCapturesNoir.setPreferredSize(new Dimension(250, 40));
+        panelCapturesNoir.setLayout(new FlowLayout(FlowLayout.LEFT));
+        panelNomCapturesNoir.add(labelNomNoir);
+        panelNomCapturesNoir.add(panelCapturesNoir);
+
+        labelNomNoir.setPreferredSize(new Dimension(150, 30));
+        labelNomNoir.setToolTipText(labelNomNoir.getText());
+
+        JPanel panelNomCapturesBlanc = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        panelNomCapturesBlanc.setPreferredSize(new Dimension(250, 40));
+        panelCapturesBlanc.setLayout(new FlowLayout(FlowLayout.LEFT));
+        panelNomCapturesBlanc.add(labelNomBlanc);
+        panelNomCapturesBlanc.add(panelCapturesBlanc);
+
+        labelNomBlanc.setPreferredSize(new Dimension(150, 30));
+        labelNomBlanc.setToolTipText(labelNomBlanc.getText());
+
         JPanel panelChronos = new JPanel(new FlowLayout(FlowLayout.CENTER));
         labelChronoBlanc = new JLabel("Blanc: 05:00");
         labelChronoNoir = new JLabel("Noir: 05:00");
@@ -126,24 +150,14 @@ public class VueEchiquier extends JFrame {
         panelChronos.add(labelChronoNoir);
         panelChronos.add(labelTour);
 
-        JPanel panelCaptures = new JPanel(new GridLayout(1, 2));
-
-        JPanel blocBlanc = new JPanel(new BorderLayout());
-        blocBlanc.add(new JLabel("Captures Blanc:"), BorderLayout.NORTH);
-        panelCapturesBlanc.setLayout(new FlowLayout(FlowLayout.LEFT));
-        blocBlanc.add(panelCapturesBlanc, BorderLayout.CENTER);
-
-        JPanel blocNoir = new JPanel(new BorderLayout());
-        blocNoir.add(new JLabel("Captures Noir:"), BorderLayout.NORTH);
-        panelCapturesNoir.setLayout(new FlowLayout(FlowLayout.LEFT));
-        blocNoir.add(panelCapturesNoir, BorderLayout.CENTER);
-
-        panelCaptures.add(blocBlanc);
-        panelCaptures.add(blocNoir);
-
+        this.setLayout(new BorderLayout());
+        this.add(panelNomCapturesNoir, BorderLayout.NORTH);
         this.add(grille, BorderLayout.CENTER);
-        this.add(panelChronos, BorderLayout.NORTH);
-        this.add(panelCaptures, BorderLayout.SOUTH);
+        this.add(panelNomCapturesBlanc, BorderLayout.SOUTH);
+        this.add(panelChronos, BorderLayout.PAGE_START);
+
+        setSize(sizeX * pxCase, sizeY * pyCase + 150);
+        setLocationRelativeTo(null);
     }
 
     public void setDeplacementsPossibles(List<Case> cases) {
@@ -168,23 +182,24 @@ public class VueEchiquier extends JFrame {
         repaint();
     }
 
-    public static void miseAJourChronoBlanc(int temps) {
+    public void miseAJourChronoBlanc(int temps) {
         labelChronoBlanc.setText("Blanc: " + formatTemps(temps));
     }
 
-    public static void miseAJourChronoNoir(int temps) {
+    public void miseAJourChronoNoir(int temps) {
         labelChronoNoir.setText("Noir: " + formatTemps(temps));
     }
 
-    private static String formatTemps(int temps) {
+    private String formatTemps(int temps) {
         int minutes = temps / 60;
         int secondes = temps % 60;
         return String.format("%02d:%02d", minutes, secondes);
     }
 
-    public static void changerTour(String joueur) {
+    public void changerTour(String joueur) {
         labelTour.setText("C'est au tour du joueur " + joueur);
     }
+
     public void desactiverPlateau() {
         for (int x = 0; x < sizeX; x++) {
             for (int y = 0; y < sizeY; y++) {
@@ -195,7 +210,7 @@ public class VueEchiquier extends JFrame {
 
     public void ajouterCapture(Piece piece) {
         JLabel labelIcone = new JLabel(getIconPourPiece(piece));
-        labelIcone.setPreferredSize(new Dimension(32, 32));
+        labelIcone.setPreferredSize(new Dimension(20, 20)); // taille réduite comme sur chess.com
 
         if (piece.getCouleur().equals("blanc")) {
             panelCapturesNoir.add(labelIcone);
@@ -205,5 +220,4 @@ public class VueEchiquier extends JFrame {
         revalidate();
         repaint();
     }
-
 }

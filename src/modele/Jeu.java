@@ -1,18 +1,14 @@
 package modele;
+
 import modele.Pieces.Roi;
 import modele.Pieces.Tour;
-
-
 import Vue.VueEchiquier;
 import modele.Pieces.Pion;
 
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-
 
 public class Jeu {
     private Joueur joueurBlanc;
@@ -38,40 +34,31 @@ public class Jeu {
     }
 
     public void demarrerChronometre() {
-        ActionListener actionListenerBlanc = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (tempsRestantBlanc > 0 && partieEnCours) {
-                    tempsRestantBlanc--;
-                    VueEchiquier.miseAJourChronoBlanc(tempsRestantBlanc); // Met à jour l'affichage du chrono Blanc
-                    verifierFinPartie();
-                } else {
-                    timerBlanc.stop();
-                }
+        ActionListener actionListenerBlanc = e -> {
+            if (tempsRestantBlanc > 0 && partieEnCours) {
+                tempsRestantBlanc--;
+                if (vueEchiquier != null)
+                    vueEchiquier.miseAJourChronoBlanc(tempsRestantBlanc);
+                verifierFinPartie();
+            } else {
+                if (timerBlanc != null) timerBlanc.stop();
             }
         };
 
-        ActionListener actionListenerNoir = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (tempsRestantNoir > 0 && partieEnCours) {
-                    tempsRestantNoir--;
-                    VueEchiquier.miseAJourChronoNoir(tempsRestantNoir); // Met à jour l'affichage du chrono Noir
-                    verifierFinPartie();
-                } else {
-                    timerNoir.stop();
-                }
+        ActionListener actionListenerNoir = e -> {
+            if (tempsRestantNoir > 0 && partieEnCours) {
+                tempsRestantNoir--;
+                if (vueEchiquier != null)
+                    vueEchiquier.miseAJourChronoNoir(tempsRestantNoir);
+                verifierFinPartie();
+            } else {
+                if (timerNoir != null) timerNoir.stop();
             }
         };
 
-        if (timerBlanc == null) {
-            timerBlanc = new Timer(1000, actionListenerBlanc); // 1000 ms = 1 seconde
-        }
-        if (timerNoir == null) {
-            timerNoir = new Timer(1000, actionListenerNoir);
-        }
+        if (timerBlanc == null) timerBlanc = new Timer(1000, actionListenerBlanc);
+        if (timerNoir == null) timerNoir = new Timer(1000, actionListenerNoir);
 
-        // Lancer le timer pour Blanc en premier
         timerBlanc.start();
     }
 
@@ -83,28 +70,31 @@ public class Jeu {
         return joueurCourant;
     }
 
-
     public void changerTour() {
-        // Arrêter le timer du joueur courant et démarrer celui du joueur adverse
         if (joueurCourant == joueurBlanc) {
-            timerBlanc.stop();
-            timerNoir.start();
+            if (timerBlanc != null) timerBlanc.stop();
+            if (timerNoir != null) timerNoir.start();
             joueurCourant = joueurNoir;
+            if (vueEchiquier != null)
+                vueEchiquier.changerTour("Noir");
         } else {
-            timerNoir.stop();
-            timerBlanc.start();
+            if (timerNoir != null) timerNoir.stop();
+            if (timerBlanc != null) timerBlanc.start();
             joueurCourant = joueurBlanc;
+            if (vueEchiquier != null)
+                vueEchiquier.changerTour("Blanc");
         }
     }
 
     public boolean demandeDeplacementPiece(Case source, Case arrive) {
         Piece piece = source.getPiece();
         if (piece == null || !piece.getCouleur().equals(joueurCourant.getCouleur()) || !piece.peutDeplacer(source, arrive)) {
-            return false; // Valider que la pièce peut être déplacée
+            return false;
         }
 
         Piece pieceCapturee = arrive.getPiece();
-        // cas spécial : prise en passant
+
+        // Prise en passant spéciale
         if (piece instanceof Pion && arrive.estVide()) {
             int dx = arrive.getX() - source.getX();
             int dy = arrive.getY() - source.getY();
@@ -112,29 +102,24 @@ public class Jeu {
             if (Math.abs(dx) == 1 && dy == (piece.getCouleur().equals("blanc") ? -1 : 1)) {
                 Case casePionPris = plateau.getCase(arrive.getX(), source.getY());
                 pieceCapturee = casePionPris.getPiece();
-                casePionPris.setPiece(null); // retirer le pion capturé
+                casePionPris.setPiece(null);
             }
         }
 
-// ici seulement : afficher la pièce capturée (prise en passant ou normale)
         if (pieceCapturee != null && vueEchiquier != null) {
             vueEchiquier.ajouterCapture(pieceCapturee);
         }
-
-        if (pieceCapturee != null && vueEchiquier != null) {
-            vueEchiquier.ajouterCapture(pieceCapturee);
-        }
-
 
         Coup coup = new Coup(piece, source, arrive, pieceCapturee);
         effectuerDeplacement(source, arrive, piece);
-
         historique.add(coup);
+
+        // Roque
         if (piece instanceof Roi) {
             int dx = arrive.getX() - source.getX();
-            if (Math.abs(dx) == 2) { // roque détecté
+            if (Math.abs(dx) == 2) {
                 int y = source.getY();
-                if (dx > 0) { // petit roque
+                if (dx > 0) {
                     Case caseTour = plateau.getCase(7, y);
                     Case caseTourDest = plateau.getCase(5, y);
                     Piece tour = caseTour.getPiece();
@@ -142,7 +127,7 @@ public class Jeu {
                     caseTour.setPiece(null);
                     tour.setCase(caseTourDest);
                     ((Tour) tour).setABouge(true);
-                } else { // grand roque
+                } else {
                     Case caseTour = plateau.getCase(0, y);
                     Case caseTourDest = plateau.getCase(3, y);
                     Piece tour = caseTour.getPiece();
@@ -154,48 +139,31 @@ public class Jeu {
             }
         }
 
-
-
+        // Promotion pion
         if (piece instanceof Pion) {
             int lignePromotion = piece.getCouleur().equals("blanc") ? 0 : 7;
             if (arrive.getY() == lignePromotion) {
                 String[] options = {"Reine", "Tour", "Fou", "Cavalier"};
-                String choix = (String) JOptionPane.showInputDialog(
-                        null,
-                        "Choisissez une pièce pour la promotion :",
-                        "Promotion du pion",
-                        JOptionPane.PLAIN_MESSAGE,
-                        null,
-                        options,
-                        options[0]
-                );
+                String choix = (String) JOptionPane.showInputDialog(null, "Choisissez une pièce pour la promotion :",
+                        "Promotion du pion", JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
 
-                Piece nouvellePiece = null;
-                switch (choix) {
-                    case "Reine" -> nouvellePiece = new modele.Pieces.Reine(piece.getCouleur());
-                    case "Tour" -> nouvellePiece = new modele.Pieces.Tour(piece.getCouleur());
-                    case "Fou" -> nouvellePiece = new modele.Pieces.Fou(piece.getCouleur());
-                    case "Cavalier" -> nouvellePiece = new modele.Pieces.Cavalier(piece.getCouleur());
-                    default -> nouvellePiece = new modele.Pieces.Reine(piece.getCouleur());
-                }
+                Piece nouvellePiece = switch (choix) {
+                    case "Reine" -> new modele.Pieces.Reine(piece.getCouleur());
+                    case "Tour" -> new modele.Pieces.Tour(piece.getCouleur());
+                    case "Fou" -> new modele.Pieces.Fou(piece.getCouleur());
+                    case "Cavalier" -> new modele.Pieces.Cavalier(piece.getCouleur());
+                    default -> new modele.Pieces.Reine(piece.getCouleur());
+                };
 
                 arrive.setPiece(nouvellePiece);
                 nouvellePiece.setCase(arrive);
             }
         }
 
-// 🔄 tour suivant
         changerTour();
         plateau.notifierChangement();
 
-// 💥 vérifier échec et mat
-        String couleurAdverse = joueurCourant.getCouleur();
-        verifierEchecEtMat(couleurAdverse);
-
-
-        couleurAdverse = joueurCourant.getCouleur();
-        // Adversaire après changement de tour
-        verifierEchecEtMat(couleurAdverse);
+        verifierEchecEtMat(joueurCourant.getCouleur());
 
         return true;
     }
@@ -204,19 +172,14 @@ public class Jeu {
         arrive.setPiece(piece);
         source.setPiece(null);
         piece.setCase(arrive);
-        if (piece instanceof Roi) {
-            ((Roi) piece).setABouge(true);
-        } else if (piece instanceof Tour) {
-            ((Tour) piece).setABouge(true);
-        }
-
+        if (piece instanceof Roi) ((Roi) piece).setABouge(true);
+        if (piece instanceof Tour) ((Tour) piece).setABouge(true);
     }
 
     private void verifierEchecEtMat(String couleurAdverse) {
         if (plateau.estEnEchec(couleurAdverse)) {
             afficherMessage("Échec, attention !", "Le roi de " + couleurAdverse + " est en échec !");
         }
-
         if (plateau.estEchecEtMat(couleurAdverse)) {
             afficherMessage("Échec et Mat", joueurCourant.getNom() + " a remporté la partie !");
             finPartie(joueurCourant.getNom() + " a gagné par Échec et Mat !");
@@ -224,18 +187,17 @@ public class Jeu {
             afficherMessage("Pat", "La partie est nulle par pat.");
             finPartie("Partie nulle par pat.");
         }
-
     }
 
     private void afficherMessage(String titre, String message) {
         JPanel panel = new JPanel();
-        panel.setBackground(new Color(255, 192, 203)); // Rose clair un peu plus doux
+        panel.setBackground(new Color(255, 192, 203));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        JLabel label = new JLabel("<html><div style='text-align: center;'>"
-                + "<h1 style='color: white; font-size: 18px;'>" + titre + "</h1>"
-                + "<p style='color: white; font-size: 14px;'><strong>" + message + "</strong></p>"
-                + "</div></html>");
+        JLabel label = new JLabel("<html><div style='text-align: center;'>" +
+                "<h1 style='color: white; font-size: 18px;'>" + titre + "</h1>" +
+                "<p style='color: white; font-size: 14px;'><strong>" + message + "</strong></p>" +
+                "</div></html>");
         label.setHorizontalAlignment(SwingConstants.CENTER);
         label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 
@@ -246,22 +208,16 @@ public class Jeu {
         JOptionPane.showMessageDialog(null, panel, titre, JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // Vérifier si le temps est écoulé pour un joueur
     public void verifierFinPartie() {
-        if (tempsRestantBlanc <= 0) {
-            finPartie("Le joueur noir a gagné, temps écoulé !");
-        } else if (tempsRestantNoir <= 0) {
-            finPartie("Le joueur blanc a gagné, temps écoulé !");
-        }
+        if (tempsRestantBlanc <= 0) finPartie("Le joueur noir a gagné, temps écoulé !");
+        else if (tempsRestantNoir <= 0) finPartie("Le joueur blanc a gagné, temps écoulé !");
     }
 
-    // Fin de la partie
     public void finPartie(String message) {
         partieEnCours = false;
-        timerBlanc.stop();
-        timerNoir.stop();
+        if (timerBlanc != null) timerBlanc.stop();
+        if (timerNoir != null) timerNoir.stop();
 
-        // joli message façon chess.com
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(Color.BLACK);
@@ -274,13 +230,12 @@ public class Jeu {
 
         JOptionPane.showMessageDialog(null, panel, "🎉 Fin de la Partie 🎉", JOptionPane.INFORMATION_MESSAGE);
 
-        // on désactive toute interaction
-        vueEchiquier.setEnabled(false); // désactive les clics
-        vueEchiquier.setFocusable(false);
-        vueEchiquier.desactiverPlateau();
-
+        if (vueEchiquier != null) {
+            vueEchiquier.setEnabled(false);
+            vueEchiquier.setFocusable(false);
+            vueEchiquier.desactiverPlateau();
+        }
     }
-
 
     public void setVueEchiquier(VueEchiquier vueEchiquier) {
         this.vueEchiquier = vueEchiquier;
@@ -293,25 +248,29 @@ public class Jeu {
     public Joueur getJoueurBlanc() {
         return joueurBlanc;
     }
+
+    public boolean getTour() {
+        return joueurCourant == joueurBlanc;
+    }
+
     public void sauvegarderEnPGN(String chemin, String resultat) {
         modele.PGNExporter.exporter(this, historique, chemin, resultat);
     }
+
     public ArrayList<Coup> getHistorique() {
         return historique;
     }
 
     public Coup getDernierCoup() {
-        if (!historique.isEmpty()) {
-            return historique.get(historique.size() - 1);
-        }
+        if (!historique.isEmpty()) return historique.get(historique.size() - 1);
         return null;
     }
+
     public boolean isPartieEnCours() {
         return partieEnCours;
     }
 
-
-
-
-
+    public boolean isPartieTerminee() {
+        return !partieEnCours;
+    }
 }
