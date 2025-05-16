@@ -5,6 +5,7 @@ import modele.Pieces.Tour;
 
 import Vue.VueEchiquier;
 import modele.Pieces.Pion;
+import modele.ia.IAJoueurMinimax;
 
 
 import javax.swing.*;
@@ -26,6 +27,10 @@ public class Jeu {
     private int tempsRestantNoir;
     private boolean partieEnCours = true; // Pour savoir si la partie est encore en cours
     private VueEchiquier vueEchiquier;
+    private boolean iaActivee = false;
+    private IAJoueurMinimax iaNoir = new IAJoueurMinimax();
+
+
 
     public Jeu(Plateau plateau, String nomBlanc, String nomNoir, int dureeChronoEnSecondes) {
         this.plateau = plateau;
@@ -35,6 +40,18 @@ public class Jeu {
 
         this.tempsRestantBlanc = dureeChronoEnSecondes;
         this.tempsRestantNoir = dureeChronoEnSecondes;
+    }
+
+    public Jeu(Jeu original) {
+        this.plateau = new Plateau(original.getPlateau()); // à faire aussi
+        this.joueurBlanc = new Joueur(original.joueurBlanc); // copie profonde recommandée
+        this.joueurNoir = new Joueur(original.joueurNoir);
+        this.joueurCourant = original.joueurCourant.getCouleur().equals("blanc") ? joueurBlanc : joueurNoir;
+        this.historique = new ArrayList<>(original.historique); // peut aussi faire une copie profonde
+        this.tempsRestantBlanc = original.tempsRestantBlanc;
+        this.tempsRestantNoir = original.tempsRestantNoir;
+        this.partieEnCours = original.partieEnCours;
+        this.iaActivee = original.iaActivee;
     }
 
     public void demarrerChronometre() {
@@ -90,10 +107,16 @@ public class Jeu {
             timerBlanc.stop();
             timerNoir.start();
             joueurCourant = joueurNoir;
+
+            if (iaActivee) {
+                jouerTourIA();
+            }
+
         } else {
             timerNoir.stop();
             timerBlanc.start();
             joueurCourant = joueurBlanc;
+
         }
     }
 
@@ -311,6 +334,22 @@ public class Jeu {
     }
 
 
+    public void jouerTourIA() {
+        if (!iaActivee || !partieEnCours || !joueurCourant.getCouleur().equals("noir")) {
+            return;  // Ne fait rien si IA désactivée, partie finie ou ce n’est pas au tour de l’IA noire
+        }
+
+        // Trouve le meilleur coup pour l’IA noire
+        Coup coupIA = iaNoir.meilleurCoup(this, "noir");
+
+        if (coupIA != null) {
+            // Déplace la pièce selon le coup choisi
+            demandeDeplacementPiece(coupIA.getCaseDepart(), coupIA.getCaseArrivee());
+
+            // Optionnel : changer le joueur courant, vérifier si partie finie, etc.
+            // Cela dépend de ta méthode demandeDeplacementPiece et de la gestion des tours
+        }
+    }
 
 
 

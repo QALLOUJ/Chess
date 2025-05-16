@@ -30,4 +30,8 @@ public class Fou extends Piece {
         ArrayList<Case> lst = dec.getMesCA();
         return lst.contains(arrive);
     }
+    @Override
+    public Piece clone() {
+        return new Fou(this.couleur);
+    }
 }

@@ -41,6 +41,9 @@ public class Tour extends Piece {
     public void setABouge(boolean b) {
         aBouge = b;
     }
-
+    @Override
+    public Piece clone() {
+        return new Tour(this.couleur);
+    }
 }
 

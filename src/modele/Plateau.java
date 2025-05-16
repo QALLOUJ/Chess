@@ -3,12 +3,31 @@ package modele;
 import modele.Pieces.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 
 public class Plateau extends Observable {
     public static int SIZE_X;
     public static int SIZE_Y;
     private final Case[][] cases;
+
+
+    //  Constructeur de copie
+    public Plateau(Plateau original) {
+       SIZE_X = original.SIZE_X;
+       SIZE_Y = original.SIZE_Y;
+        cases = new Case[SIZE_X][SIZE_Y];
+
+        for (int x = 0; x < SIZE_X; x++) {
+            for (int y = 0; y < SIZE_Y; y++) {
+                cases[x][y] = new Case(x, y, this);
+                Piece originalPiece = original.cases[x][y].getPiece();
+                if (originalPiece != null) {
+                    cases[x][y].setPiece(originalPiece.clone());
+                }
+            }
+        }
+    }
 
 
     public Plateau(int sizeX, int sizeY) {
@@ -23,6 +42,7 @@ public class Plateau extends Observable {
         }
         initialiserPartie();
     }
+
 
     // Initialiser les pièces pour une nouvelle partie
     public void initialiserPartie() {
@@ -209,6 +229,30 @@ public class Plateau extends Observable {
     }
 
 
+
+
+    public List<Coup> getTousLesCoupsPossiblesPour(String couleur) {
+        List<Coup> coups = new ArrayList<>();
+
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                Case c = cases[x][y];
+                Piece p = c.getPiece();
+                if (p != null && p.getCouleur().equals(couleur)) {
+                    for (Case cible : p.getCasesAccessibles()) {
+                        if (p.peutDeplacer(c, cible)) {
+                            coups.add(new Coup(p, c, cible, cible.getPiece()));
+                        }
+                    }
+                }
+            }
+        }
+        return coups;
+    }
+
 }
+
+
+
 
 

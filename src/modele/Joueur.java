@@ -24,5 +24,9 @@ public class Joueur {
     public boolean estBlanc() {
         return "blanc".equals(couleur);
     }
+    public Joueur(Joueur autre) {
+        this.nom = autre.nom;
+        this.couleur = autre.couleur;
+    }
 
 }

@@ -32,4 +32,8 @@ public class Reine extends Piece {
         ArrayList<Case> lst = dec.getMesCA();
         return lst.contains(arrive);
     }
+    @Override
+    public Piece clone() {
+        return new Reine(this.couleur);
+    }
 }

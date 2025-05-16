@@ -5,15 +5,14 @@ import modele.Pieces.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class VueEchiquier extends JFrame {
     private final Plateau plateau;
     private JLabel[][] tabJLabel;
-    private final int pxCase = 50, pyCase = 50;
+    private final int pxCase = 64, pyCase = 64;
     private final int sizeX, sizeY;
     private static JLabel labelChronoBlanc;
     private static JLabel labelChronoNoir;
@@ -21,22 +20,129 @@ public class VueEchiquier extends JFrame {
     private final List<CaseClickListener> listeners = new ArrayList<>();
     private final JPanel panelCapturesBlanc = new JPanel();
     private final JPanel panelCapturesNoir = new JPanel();
-
     private List<Case> deplacementsPossibles = new ArrayList<>();
-
-    // Icônes
     private ImageIcon icoRoiBlanc, icoRoiNoir, icoReineBlanc, icoReineNoir,
             icoTourBlanc, icoTourNoir, icoFouBlanc, icoFouNoir,
             icoCavalierBlanc, icoCavalierNoir, icoPionBlanc, icoPionNoir;
+    private boolean vsIA = false;
 
     public VueEchiquier(Plateau plateau) {
         this.plateau = plateau;
         this.sizeX = Plateau.SIZE_X;
         this.sizeY = Plateau.SIZE_Y;
-
         chargerLesIcones();
-        placerLesComposantsGraphiques();
+        initFenetre();
+        afficherMenuDemarrage();
         mettreAJourAffichage();
+    }
+
+    private void initFenetre() {
+        setTitle("Jeu d'Échecs");
+        setResizable(false);
+        setSize(sizeX * pxCase + 300, sizeY * pyCase + 220);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        JPanel grille = new JPanel(new GridLayout(sizeY, sizeX));
+        tabJLabel = new JLabel[sizeX][sizeY];
+
+        for (int y = 0; y < sizeY; y++) {
+            for (int x = 0; x < sizeX; x++) {
+                JLabel jlab = new JLabel();
+                jlab.setOpaque(true);
+                jlab.setHorizontalAlignment(SwingConstants.CENTER);
+                final int xx = x, yy = y;
+                jlab.addMouseListener(new MouseAdapter() {
+                    public void mouseClicked(MouseEvent e) {
+                        notifyCaseClicked(plateau.getCase(xx, yy));
+                    }
+                });
+                jlab.setBackground((x + y) % 2 == 0 ? new Color(245, 245, 220) : new Color(200, 100, 110));
+                jlab.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
+                tabJLabel[x][y] = jlab;
+                grille.add(jlab);
+            }
+        }
+
+        JPanel panelHaut = new JPanel(new FlowLayout(FlowLayout.CENTER, 40, 10));
+        labelChronoBlanc = new JLabel("Blanc: 05:00");
+        labelChronoNoir = new JLabel("Noir: 05:00");
+        labelTour = new JLabel("C'est au tour du joueur Blanc");
+
+        Font fontChrono = new Font("Verdana", Font.BOLD, 14);
+        labelChronoBlanc.setFont(fontChrono);
+        labelChronoNoir.setFont(fontChrono);
+        labelTour.setFont(new Font("Arial", Font.BOLD, 16));
+
+        panelHaut.add(labelChronoBlanc);
+        panelHaut.add(labelTour);
+        panelHaut.add(labelChronoNoir);
+
+        JPanel panelCaptures = new JPanel(new GridLayout(1, 2, 10, 0));
+        panelCapturesBlanc.setLayout(new FlowLayout(FlowLayout.LEFT));
+        panelCapturesBlanc.setBorder(BorderFactory.createTitledBorder("Captures Blanc"));
+        panelCapturesNoir.setLayout(new FlowLayout(FlowLayout.LEFT));
+        panelCapturesNoir.setBorder(BorderFactory.createTitledBorder("Captures Noir"));
+        panelCaptures.add(panelCapturesBlanc);
+        panelCaptures.add(panelCapturesNoir);
+
+        JButton btnRecommencer = new JButton("Recommencer");
+        btnRecommencer.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btnRecommencer.addActionListener(e -> {
+            int option = JOptionPane.showConfirmDialog(this, "Voulez-vous vraiment recommencer la partie ?", "Confirmation", JOptionPane.YES_NO_OPTION);
+            if (option == JOptionPane.YES_OPTION) {
+                this.dispose();
+                new VueEchiquier(new Plateau(8,8)).setVisible(true);
+            }
+        });
+        JPanel panelDroite = new JPanel(new BorderLayout());
+        panelDroite.add(btnRecommencer, BorderLayout.NORTH);
+
+        this.setLayout(new BorderLayout(10, 10));
+        this.add(grille, BorderLayout.CENTER);
+        this.add(panelHaut, BorderLayout.NORTH);
+        this.add(panelCaptures, BorderLayout.SOUTH);
+        this.add(panelDroite, BorderLayout.EAST);
+    }
+
+    private void afficherMenuDemarrage() {
+        JDialog dialog = new JDialog(this, "Choix du mode de jeu", true);
+        dialog.setSize(350, 230);
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(this);
+
+        JLabel label = new JLabel("Choisissez le mode de jeu :", SwingConstants.CENTER);
+        label.setFont(new Font("Arial", Font.BOLD, 18));
+        label.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        dialog.add(label, BorderLayout.NORTH);
+
+        JPanel panelBoutons = new JPanel(new GridLayout(2, 1, 10, 10));
+        JButton btnJoueurVsJoueur = new JButton("Joueur vs Joueur");
+        JButton btnJoueurVsIA = new JButton("Joueur vs IA");
+
+        btnJoueurVsJoueur.setFont(new Font("Arial", Font.PLAIN, 16));
+        btnJoueurVsIA.setFont(new Font("Arial", Font.PLAIN, 16));
+
+        btnJoueurVsJoueur.addActionListener(e -> {
+            vsIA = false;
+            dialog.dispose();
+            changerTour("Blanc");
+        });
+
+        btnJoueurVsIA.addActionListener(e -> {
+            vsIA = true;
+            dialog.dispose();
+            changerTour("Blanc");
+        });
+
+        panelBoutons.add(btnJoueurVsJoueur);
+        panelBoutons.add(btnJoueurVsIA);
+        dialog.add(panelBoutons, BorderLayout.CENTER);
+        dialog.setVisible(true);
+    }
+
+    public boolean isVsIA() {
+        return vsIA;
     }
 
     public void addCaseClickListener(CaseClickListener listener) {
@@ -64,9 +170,17 @@ public class VueEchiquier extends JFrame {
         icoPionNoir = chargerIcone("Images/black-pawn.png");
     }
 
+    private ImageIcon chargerIcone(String path) {
+        ImageIcon icon = new ImageIcon(path);
+        if (icon.getImageLoadStatus() != MediaTracker.COMPLETE) {
+            System.err.println("Erreur de chargement de l'image: " + path);
+        }
+        Image img = icon.getImage().getScaledInstance(pxCase, pyCase, Image.SCALE_SMOOTH);
+        return new ImageIcon(img);
+    }
+
     private ImageIcon getIconPourPiece(Piece piece) {
         if (piece == null) return null;
-
         return switch (piece.getNom()) {
             case "Roi" -> piece.getCouleur().equals("blanc") ? icoRoiBlanc : icoRoiNoir;
             case "Reine" -> piece.getCouleur().equals("blanc") ? icoReineBlanc : icoReineNoir;
@@ -76,74 +190,6 @@ public class VueEchiquier extends JFrame {
             case "Pion" -> piece.getCouleur().equals("blanc") ? icoPionBlanc : icoPionNoir;
             default -> null;
         };
-    }
-
-    private ImageIcon chargerIcone(String path) {
-        ImageIcon icon = new ImageIcon(path);
-        if (icon.getImageLoadStatus() != MediaTracker.COMPLETE) {
-            System.out.println("Erreur de chargement de l'image: " + path);
-        }
-        Image img = icon.getImage().getScaledInstance(pxCase, pyCase, Image.SCALE_SMOOTH);
-        return new ImageIcon(img);
-    }
-
-    private void placerLesComposantsGraphiques() {
-        setTitle("Jeu d'Échecs");
-        setResizable(false);
-        setSize(sizeX * pxCase, sizeY * pyCase + 120);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        JPanel grille = new JPanel(new GridLayout(sizeY, sizeX));
-        tabJLabel = new JLabel[sizeX][sizeY];
-
-        for (int y = 0; y < sizeY; y++) {
-            for (int x = 0; x < sizeX; x++) {
-                JLabel jlab = new JLabel();
-                jlab.setOpaque(true);
-                jlab.setHorizontalAlignment(SwingConstants.CENTER);
-                final int xx = x, yy = y;
-
-                jlab.addMouseListener(new MouseAdapter() {
-                    public void mouseClicked(MouseEvent e) {
-                        notifyCaseClicked(plateau.getCase(xx, yy));
-                    }
-                });
-
-                Color color = (x + y) % 2 == 0 ? new Color(245, 245, 220) : new Color(200, 100, 110);
-                jlab.setBackground(color);
-                jlab.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-
-                tabJLabel[x][y] = jlab;
-                grille.add(jlab);
-            }
-        }
-
-        JPanel panelChronos = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        labelChronoBlanc = new JLabel("Blanc: 05:00");
-        labelChronoNoir = new JLabel("Noir: 05:00");
-        labelTour = new JLabel("C'est au tour du joueur Blanc");
-        panelChronos.add(labelChronoBlanc);
-        panelChronos.add(labelChronoNoir);
-        panelChronos.add(labelTour);
-
-        JPanel panelCaptures = new JPanel(new GridLayout(1, 2));
-
-        JPanel blocBlanc = new JPanel(new BorderLayout());
-        blocBlanc.add(new JLabel("Captures Blanc:"), BorderLayout.NORTH);
-        panelCapturesBlanc.setLayout(new FlowLayout(FlowLayout.LEFT));
-        blocBlanc.add(panelCapturesBlanc, BorderLayout.CENTER);
-
-        JPanel blocNoir = new JPanel(new BorderLayout());
-        blocNoir.add(new JLabel("Captures Noir:"), BorderLayout.NORTH);
-        panelCapturesNoir.setLayout(new FlowLayout(FlowLayout.LEFT));
-        blocNoir.add(panelCapturesNoir, BorderLayout.CENTER);
-
-        panelCaptures.add(blocBlanc);
-        panelCaptures.add(blocNoir);
-
-        this.add(grille, BorderLayout.CENTER);
-        this.add(panelChronos, BorderLayout.NORTH);
-        this.add(panelCaptures, BorderLayout.SOUTH);
     }
 
     public void setDeplacementsPossibles(List<Case> cases) {
@@ -156,12 +202,8 @@ public class VueEchiquier extends JFrame {
                 Case c = plateau.getCase(x, y);
                 JLabel label = tabJLabel[x][y];
                 label.setIcon(getIconPourPiece(c.getPiece()));
-
-                if (deplacementsPossibles.contains(c)) {
-                    label.setBackground(new Color(255, 255, 153));
-                } else {
-                    label.setBackground((x + y) % 2 == 0 ? new Color(245, 245, 220) : new Color(200, 100, 110));
-                }
+                label.setBackground(deplacementsPossibles.contains(c) ? new Color(255, 255, 153) :
+                        (x + y) % 2 == 0 ? new Color(245, 245, 220) : new Color(200, 100, 110));
             }
         }
         revalidate();
@@ -185,6 +227,7 @@ public class VueEchiquier extends JFrame {
     public static void changerTour(String joueur) {
         labelTour.setText("C'est au tour du joueur " + joueur);
     }
+
     public void desactiverPlateau() {
         for (int x = 0; x < sizeX; x++) {
             for (int y = 0; y < sizeY; y++) {
@@ -196,7 +239,6 @@ public class VueEchiquier extends JFrame {
     public void ajouterCapture(Piece piece) {
         JLabel labelIcone = new JLabel(getIconPourPiece(piece));
         labelIcone.setPreferredSize(new Dimension(32, 32));
-
         if (piece.getCouleur().equals("blanc")) {
             panelCapturesNoir.add(labelIcone);
         } else {
@@ -206,4 +248,7 @@ public class VueEchiquier extends JFrame {
         repaint();
     }
 
+    public interface CaseClickListener {
+        void onCaseClicked(Case c);
+    }
 }

@@ -57,4 +57,8 @@ public class Roi extends Piece {
         aBouge = b;
     }
 
+    @Override
+    public Piece clone() {
+        return new Roi(this.couleur);
+    }
 }
