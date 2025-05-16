@@ -11,7 +11,7 @@ public class ControleurEchiquier implements VueEchiquier.CaseClickListener {
     private final Jeu jeu;
     private final VueEchiquier vue;
     private Case selection = null;
-    private boolean vsIA;
+    private final boolean vsIA;
     private final IAJoueurMinimax ia;
 
 
@@ -22,12 +22,20 @@ public class ControleurEchiquier implements VueEchiquier.CaseClickListener {
         this.ia = new IAJoueurMinimax();
         jeu.setVueEchiquier(vue);
         vue.addCaseClickListener(this);
-        jeu.demarrerChronometre(); // Démarre les chronomètres lorsque le contrôleur est initialisé
+        jeu.demarrerChronometre();
+        jeu.setIaActivee(vsIA);
+// Démarre les chronomètres lorsque le contrôleur est initialisé
     }
 
     @Override
     public void onCaseClicked(Case c) {
         if (!jeu.isPartieEnCours()) return;
+        if (jeu.isTourIA()) {
+            return;
+        }
+
+
+
 
         // 1er clic : sélection
         if (selection == null) {
@@ -43,19 +51,18 @@ public class ControleurEchiquier implements VueEchiquier.CaseClickListener {
                 for (Case cible : accessibles) {
                     if (cible == null) continue;
 
-                    Case source = c;
                     Piece sauvegarde = cible.getPiece();
                     Case ancienneCase = piece.getCase();
 
                     // Simulation du déplacement
                     cible.setPiece(piece);
-                    source.setPiece(null);
+                    c.setPiece(null);
                     piece.setCase(cible);
 
                     boolean encoreEnEchec = jeu.getPlateau().estEnEchec(piece.getCouleur());
 
                     // Restauration
-                    source.setPiece(piece);
+                    c.setPiece(piece);
                     cible.setPiece(sauvegarde);
                     piece.setCase(ancienneCase);
 
@@ -107,15 +114,19 @@ public class ControleurEchiquier implements VueEchiquier.CaseClickListener {
         Coup coup = ia.meilleurCoup(jeu, couleurIA);
 
         if (coup != null) {
+            System.out.println("IA veut jouer : " + coup.getCaseDepart() + " -> " + coup.getCaseArrivee());
             boolean succes = jeu.demandeDeplacementPiece(coup.getCaseDepart(), coup.getCaseArrivee());
             if (succes) {
-                System.out.println("IA joue : " + coup.getCaseDepart() + " -> " + coup.getCaseArrivee());
+                System.out.println("IA a joué son coup avec succès.");
                 vue.mettreAJourAffichage();
                 VueEchiquier.changerTour(jeu.getJoueurCourant().getNom());
+            } else {
+                System.out.println("IA : déplacement invalide.");
             }
         } else {
             System.out.println("IA ne trouve pas de coup valide.");
         }
     }
+
 
 }

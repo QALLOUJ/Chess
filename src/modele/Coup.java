@@ -1,10 +1,10 @@
 package modele;
 
 public class Coup {
-    private Piece pieceJouee;
-    private Case caseDepart;
-    private Case caseArrivee;
-    private Piece pieceCapturee;
+    private final Piece pieceJouee;
+    private final Case caseDepart;
+    private final Case caseArrivee;
+    private final Piece pieceCapturee;
 
     public Coup(Piece pieceJouee, Case caseDepart, Case caseArrivee, Piece pieceCapturee) {
         this.pieceJouee = pieceJouee;

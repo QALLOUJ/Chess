@@ -1,10 +1,10 @@
 package modele;
 
 public class Case {
-    private int x;
-    private int y;
+    private final int x;
+    private final int y;
     private Piece piece;
-    private Plateau plateau; // Référence au plateau
+    private final  Plateau plateau; // Référence au plateau
 
     public Case(int x, int y, Plateau plateau) {
         this.x = x;
@@ -56,7 +56,11 @@ public class Case {
     public String toString() {
         return "(" + x + "," + y + ")";
     }
-    private boolean surlignee = false;
+    private boolean surlignee;
+
+    {
+        surlignee = false;
+    }
 
     public void setSurlignee(boolean surlignee) {
         this.surlignee = surlignee;

@@ -2,7 +2,6 @@ package modele.ia;
 
 import modele.Coup;
 import modele.Jeu;
-import modele.Piece;
 import modele.Plateau;
 
 
@@ -23,7 +22,7 @@ public class IAJoueurMinimax {
         List<Coup> coupsPossibles = jeu.getPlateau().getTousLesCoupsPossiblesPour(couleurIA);
         for (Coup coup : coupsPossibles) {
             Jeu copieJeu = new Jeu(jeu); // constructeur copie de Jeu à créer
-            copieJeu.demandeDeplacementPiece(coup.getCaseDepart(), coup.getCaseArrivee());
+            copieJeu.getPlateau().appliquerCoup(coup);
 
             int eval = minimax(copieJeu, PROFONDEUR - 1, false, couleurIA);
             if (eval > maxEval) {

@@ -11,11 +11,9 @@ public class Plateau extends Observable {
     public static int SIZE_Y;
     private final Case[][] cases;
 
-
-    //  Constructeur de copie
     public Plateau(Plateau original) {
-       SIZE_X = original.SIZE_X;
-       SIZE_Y = original.SIZE_Y;
+        SIZE_X = SIZE_X;
+        SIZE_Y = SIZE_Y;
         cases = new Case[SIZE_X][SIZE_Y];
 
         for (int x = 0; x < SIZE_X; x++) {
@@ -29,10 +27,9 @@ public class Plateau extends Observable {
         }
     }
 
-
     public Plateau(int sizeX, int sizeY) {
-        this.SIZE_X = sizeX;
-        this.SIZE_Y = sizeY;
+        SIZE_X = sizeX;
+        SIZE_Y = sizeY;
         cases = new Case[SIZE_X][SIZE_Y];
 
         for (int x = 0; x < SIZE_X; x++) {
@@ -43,8 +40,6 @@ public class Plateau extends Observable {
         initialiserPartie();
     }
 
-
-    // Initialiser les pièces pour une nouvelle partie
     public void initialiserPartie() {
         for (int i = 0; i < SIZE_X; i++) {
             cases[i][1].setPiece(new Pion("noir"));
@@ -70,7 +65,6 @@ public class Plateau extends Observable {
         cases[7][7].setPiece(new Tour("blanc"));
     }
 
-    // Méthode pour obtenir la case d'une coordonnée donnée
     public Case getCase(int x, int y) {
         if (x >= 0 && x < SIZE_X && y >= 0 && y < SIZE_Y) {
             return cases[x][y];
@@ -83,7 +77,6 @@ public class Plateau extends Observable {
         return cases;
     }
 
-
     public Case getCaseRelative(Case source, int dx, int dy) {
         int newX = source.getX() + dx;
         int newY = source.getY() + dy;
@@ -95,11 +88,9 @@ public class Plateau extends Observable {
         }
     }
 
-
     public Piece getPiece(Case c) {
         return c.getPiece();
     }
-
 
     public void notifierChangement() {
         setChanged();
@@ -107,17 +98,17 @@ public class Plateau extends Observable {
     }
 
     public Case getCaseRoi(String couleur) {
-
         for (int x = 0; x < SIZE_X; x++) {
             for (int y = 0; y < SIZE_Y; y++) {
                 Piece piece = cases[x][y].getPiece();
                 if (piece instanceof Roi && piece.getCouleur().equals(couleur)) {
-                    return cases[x][y]; // Retourne la case où se trouve le roi
+                    return cases[x][y];
                 }
             }
         }
         return null;
     }
+
     private Jeu jeu;
 
     public void setJeu(Jeu jeu) {
@@ -127,6 +118,7 @@ public class Plateau extends Observable {
     public Jeu getJeu() {
         return this.jeu;
     }
+
     public boolean estPat(String couleur) {
         if (estEnEchec(couleur)) return false;
 
@@ -152,23 +144,17 @@ public class Plateau extends Observable {
                         cible.setPiece(pieceCapturee);
                         piece.setCase(ancienneCase);
 
-                        if (!roiEnEchec) {
-                            return false; // coup légal possible => pas pat
-                        }
+                        if (!roiEnEchec) return false;
                     }
                 }
             }
         }
-        return true; // aucun coup légal et roi pas en échec => pat
+        return true;
     }
 
-
-
     public boolean estEnEchec(String couleur) {
-
         Case caseRoi = getCaseRoi(couleur);
         if (caseRoi == null) return false;
-
 
         for (int x = 0; x < SIZE_X; x++) {
             for (int y = 0; y < SIZE_Y; y++) {
@@ -178,7 +164,6 @@ public class Plateau extends Observable {
                         return true;
                     }
                 }
-
             }
         }
         return false;
@@ -200,36 +185,27 @@ public class Plateau extends Observable {
                     for (Case cible : destinations) {
                         if (cible == null) continue;
 
-                        // Sauvegarde de l'état du plateau
                         Piece pieceCapturee = cible.getPiece();
                         Case ancienneCase = piece.getCase();
 
-                        // Simulation du coup
                         cible.setPiece(piece);
                         source.setPiece(null);
                         piece.setCase(cible);
 
-                        // Vérifier si roi est en échec après ce coup
                         boolean roiEnEchec = estEnEchec(couleur);
 
-                        // Annuler la simulation (restauration)
                         source.setPiece(piece);
                         cible.setPiece(pieceCapturee);
                         piece.setCase(ancienneCase);
 
-                        if (!roiEnEchec) {
-                            return false; // Il y a un coup légal possible => pas échec et mat
-                        }
+                        if (!roiEnEchec) return false;
                     }
                 }
             }
         }
 
-        return true; // aucun coup légal trouvé, donc échec et mat
+        return true;
     }
-
-
-
 
     public List<Coup> getTousLesCoupsPossiblesPour(String couleur) {
         List<Coup> coups = new ArrayList<>();
@@ -250,9 +226,14 @@ public class Plateau extends Observable {
         return coups;
     }
 
+    public void appliquerCoup(Coup c) {
+        Case depart = c.getCaseDepart();
+        Case arrivee = c.getCaseArrivee();
+        Piece piece = getCase(depart.getX(), depart.getY()).getPiece();
+        if (piece != null) {
+            getCase(arrivee.getX(), arrivee.getY()).setPiece(piece);
+            getCase(depart.getX(), depart.getY()).setPiece(null);
+            piece.setCase(arrivee); // Assure-toi que setCase existe bien dans la classe Piece
+        }
+    }
 }
-
-
-
-
-

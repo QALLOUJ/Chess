@@ -58,6 +58,7 @@ public class Main {
             // Création du plateau et du jeu
             Plateau plateau = new Plateau(8, 8);
             Jeu jeu = new Jeu(plateau, nomBlanc, nomNoir, dureeEnSecondes);
+            jeu.demarrerChronometre();
             plateau.setJeu(jeu); // connecter le plateau au jeu
 
 
@@ -66,7 +67,7 @@ public class Main {
             ControleurEchiquier controleur = new ControleurEchiquier(jeu, vue);
 
             vue.setVisible(true);
-            jeu.demarrerChronometre(); // démarre le chrono après affichage
+
         }
     }
 }
