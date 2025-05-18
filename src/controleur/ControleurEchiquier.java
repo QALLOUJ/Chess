@@ -78,7 +78,7 @@ public class ControleurEchiquier implements VueEchiquier.CaseClickListener {
             if (succes) {
 
                 vue.mettreAJourAffichage();
-                vue.mettreAJourTour(jeu.getJoueurCourant().getNom());
+                vue.changerTour(jeu.getJoueurCourant().getNom());
 
                 if (vsIA && jeu.getJoueurCourant().getCouleur().equals("noir")) {
                     new javax.swing.Timer(800, e -> {
