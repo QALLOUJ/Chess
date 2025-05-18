@@ -64,9 +64,9 @@ public class ControleurEchiquier implements VueEchiquier.CaseClickListener {
                 }
 
                 vue.setDeplacementsPossibles(deplacementsLegaux);
-                vue.afficherMessage("Pièce sélectionnée : " + piece + " à la position (" + c.getX() + "," + c.getY() + ")");
+
             } else {
-                vue.afficherMessage("Aucune pièce sélectionnée ou ce n’est pas votre tour.");
+
                 selection = null;
                 vue.setDeplacementsPossibles(List.of());
             }
@@ -76,7 +76,7 @@ public class ControleurEchiquier implements VueEchiquier.CaseClickListener {
             boolean succes = jeu.demandeDeplacementPiece(selection, c);
 
             if (succes) {
-                vue.afficherMessage("Déplacement réussi : " + jeu.getPlateau().getPiece(c) + " de " + selection + " à " + c);
+
                 vue.mettreAJourAffichage();
                 vue.mettreAJourTour(jeu.getJoueurCourant().getNom());
 
@@ -87,7 +87,7 @@ public class ControleurEchiquier implements VueEchiquier.CaseClickListener {
                     }).start();
                 }
             } else {
-                vue.afficherMessage("Déplacement invalide de " + jeu.getPlateau().getPiece(selection) + " vers " + c);
+
             }
 
             selection = null;
@@ -116,21 +116,21 @@ public class ControleurEchiquier implements VueEchiquier.CaseClickListener {
             Coup coup = ia.meilleurCoup(jeu, couleurIA);
 
             if (coup != null) {
-                vue.afficherMessage("IA veut jouer : " + coup.getCaseDepart() + " -> " + coup.getCaseArrivee());
+
                 boolean succes = jeu.demandeDeplacementPiece(coup.getCaseDepart(), coup.getCaseArrivee());
 
                 if (succes) {
-                    vue.afficherMessage("IA a joué son coup avec succès.");
+
 
                     javax.swing.SwingUtilities.invokeLater(() -> {
                         vue.mettreAJourAffichage();
                         vue.mettreAJourTour(jeu.getJoueurCourant().getNom());
                     });
                 } else {
-                    vue.afficherMessage("IA : déplacement invalide.");
+
                 }
             } else {
-                vue.afficherMessage("IA ne trouve pas de coup valide.");
+
             }
         }).start();
     }
