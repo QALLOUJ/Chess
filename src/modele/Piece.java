@@ -33,9 +33,9 @@ public abstract class Piece {
         }
     }
 
-    public boolean peutAttaquer(Case source, Case arrive) {
-
-        return peutDeplacer(source, arrive);
+    public boolean peutAttaquer(Case source, Case arrivee) {
+        if (dec == null) return false;
+        return dec.getMesCA().contains(arrivee);
     }
 
 

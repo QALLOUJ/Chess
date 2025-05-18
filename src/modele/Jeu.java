@@ -15,7 +15,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
 public class Jeu {
@@ -215,9 +214,9 @@ public class Jeu {
 
 
         plateau.notifierChangement();
-
-        verifierEchecEtMat(joueurCourant.getCouleur());
         changerTour();
+        verifierEchecEtMat(joueurCourant.getCouleur());
+
         return true;
     }
 
@@ -233,32 +232,36 @@ public class Jeu {
     }
 
     private void verifierEchecEtMat(String couleur) {
+        if (plateau.estEchecEtMat(couleur)) {
+            afficherMessage("Échec et Mat", joueurCourant.getNom() + " a remporté la partie !");
+            finPartie(joueurCourant.getNom() + " a gagné par Échec et Mat !");
+            return;
+        } else if (plateau.estPat(couleur)) {
+            afficherMessage("Pat", "La partie est nulle par pat.");
+            finPartie("Partie nulle par pat.");
+            return;
+        }
+
         if (plateau.estEnEchec(couleur)) {
             if (!messageEchecAffiche) {
                 afficherMessage("Échec, attention !", "Le roi de " + couleur + " est en échec !");
                 messageEchecAffiche = true;
             }
         } else {
-            messageEchecAffiche = false; // Réinitialisation quand le roi n'est plus en échec
-        }
-
-        if (plateau.estEchecEtMat(couleur)) {
-            afficherMessage("Échec et Mat", joueurCourant.getNom() + " a remporté la partie !");
-            finPartie(joueurCourant.getNom() + " a gagné par Échec et Mat !");
-        } else if (plateau.estPat(couleur)) {
-            afficherMessage("Pat", "La partie est nulle par pat.");
-            finPartie("Partie nulle par pat.");
+            messageEchecAffiche = false;
         }
     }
+
+
 
     private void afficherMessage(String titre, String message) {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JLabel label = new JLabel("<html><div style='text-align: center;'>"
-                + "<h1 style='color: black; font-size: 18px;'>" + titre + "</h1>"
-                + "<p style='color: black; font-size: 14px;'><strong>" + message + "</strong></p>"
-                + "</div></html>");
+                + "<span style='font-weight: bold; font-size: 16px;'>" + titre + "</span><br><br>"
+                + "<span style='font-size: 14px;'>" + message + "</span></div></html>");
+
         label.setHorizontalAlignment(SwingConstants.CENTER);
         label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
 

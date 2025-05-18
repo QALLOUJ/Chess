@@ -12,8 +12,8 @@ public class Plateau extends Observable {
     private final Case[][] cases;
 
     public Plateau(Plateau original) {
-        SIZE_X = SIZE_X;
-        SIZE_Y = SIZE_Y;
+        SIZE_X = 8;
+        SIZE_Y = 8;
         cases = new Case[SIZE_X][SIZE_Y];
 
         for (int x = 0; x < SIZE_X; x++) {
@@ -214,7 +214,6 @@ public class Plateau extends Observable {
     }
 
 
-
     public List<Coup> getTousLesCoupsLegauxPour(String couleur) {
         List<Coup> coupsLegaux = new ArrayList<>();
 
@@ -262,6 +261,7 @@ public class Plateau extends Observable {
             piece.setCase(arrivee); // Assure-toi que setCase existe bien dans la classe Piece
         }
     }
+
     public void reset() {
         // Réinitialise toutes les cases sans pièce
         for (int x = 0; x < SIZE_X; x++) {
