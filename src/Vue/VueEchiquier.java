@@ -11,7 +11,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VueEchiquier extends JFrame {
+public abstract class VueEchiquier extends JFrame implements InterfaceUtilisateur{
     private final Plateau plateau;
     private JLabel[][] tabJLabel;
     private final int pxCase = 64, pyCase = 64;
@@ -38,7 +38,7 @@ public class VueEchiquier extends JFrame {
         this.sizeY = Plateau.SIZE_Y;
         chargerLesIcones();
         initFenetre();
-        afficherMenuDemarrage();
+
         mettreAJourAffichage();
     }
 
@@ -133,7 +133,7 @@ public class VueEchiquier extends JFrame {
         this.add(panelBas, BorderLayout.SOUTH);
     }
 
-    private void afficherMenuDemarrage() {
+    public void afficherMenuDemarrage() {
         JDialog dialog = new JDialog(this, "Paramètres de la partie", true);
         dialog.setSize(400, 350);
         dialog.setLayout(new BorderLayout());
@@ -209,6 +209,8 @@ public class VueEchiquier extends JFrame {
 
         dialog.add(panelBas, BorderLayout.SOUTH);
         dialog.setVisible(true);
+
+
     }
 
 
@@ -356,10 +358,24 @@ public class VueEchiquier extends JFrame {
         JOptionPane.showMessageDialog(this, message);
     }
 
+    @Override
     public void afficherMessage(String message) {
-        System.out.println(message);
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(Color.BLACK);
+
+        JLabel label = new JLabel("<html><div style='text-align: center;'>" +
+                "<h2 style='color:white;'>" + message + "</h2></div></html>");
+        label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(label);
+        panel.add(Box.createVerticalStrut(20));
+
+        JOptionPane.showMessageDialog(this, panel, "Information", JOptionPane.INFORMATION_MESSAGE);
     }
-        // Mise à jour affichage tour joueur
+
+    // Mise à jour affichage tour joueur
         public void mettreAJourTour(String nomJoueur) {
             // Exemple : labelTour.setText("Tour de : " + nomJoueur);
         }
@@ -375,5 +391,9 @@ public class VueEchiquier extends JFrame {
         miseAJourChronoBlanc(tempsInitial);
         miseAJourChronoNoir(tempsInitial);
     }
-
+    public boolean estParametrageValide() {
+        return this.nomJoueurBlanc != null &&
+                this.nomJoueurNoir != null &&
+                this.tempsParJoueur > 0;
+    }
 }

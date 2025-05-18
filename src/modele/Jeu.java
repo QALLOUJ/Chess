@@ -1,5 +1,6 @@
 package modele;
 
+import Vue.InterfaceUtilisateur;
 import modele.Pieces.*;
 
 import Vue.VueEchiquier;
@@ -32,6 +33,7 @@ public class Jeu {
     private boolean iaActivee = false;
     private boolean messageEchecAffiche = false;
     private static boolean tourBlanc = true;
+    private InterfaceUtilisateur interfaceUtilisateur;
 
 
 
@@ -46,7 +48,7 @@ public class Jeu {
     }
 
     public Jeu(Jeu original) {
-        this.plateau = new Plateau(original.getPlateau()); // copie profonde à implémenter dans Plateau
+        this.plateau = new Plateau(8,8); // copie profonde à implémenter dans Plateau
         this.joueurBlanc = new Joueur(original.joueurBlanc);
         this.joueurNoir = new Joueur(original.joueurNoir);
         this.joueurCourant = original.joueurCourant.getCouleur().equals("blanc") ? joueurBlanc : joueurNoir;
@@ -61,8 +63,11 @@ public class Jeu {
         ActionListener actionListenerBlanc = e -> {
             if (tempsRestantBlanc > 0 && partieEnCours) {
                 tempsRestantBlanc--;
-                VueEchiquier.miseAJourChronoBlanc(tempsRestantBlanc);
-                verifierFinPartie();
+                if (interfaceUtilisateur != null) {
+                    interfaceUtilisateur.miseAJourChrono("blanc", tempsRestantBlanc);
+                    interfaceUtilisateur.miseAJourChrono("noir", tempsRestantNoir);
+                }
+
             } else if (timerBlanc != null) {
                 timerBlanc.stop();
             }
@@ -94,6 +99,10 @@ public class Jeu {
 
     public Joueur getJoueurCourant() {
         return joueurCourant;
+    }
+
+    public void setInterfaceUtilisateur(InterfaceUtilisateur ui) {
+        this.interfaceUtilisateur = ui;
     }
 
     public boolean isTourIA() {
@@ -178,15 +187,8 @@ public class Jeu {
             int lignePromotion = piece.getCouleur().equals("blanc") ? 0 : 7;
             if (arrive.getY() == lignePromotion) {
                 String[] options = {"Reine", "Tour", "Fou", "Cavalier"};
-                String choix = (String) JOptionPane.showInputDialog(
-                        null,
-                        "Choisissez une pièce pour la promotion :",
-                        "Promotion du pion",
-                        JOptionPane.PLAIN_MESSAGE,
-                        null,
-                        options,
-                        options[0]
-                );
+                String choix = interfaceUtilisateur.demanderChoixPromotion(options);
+
 
                 Piece nouvellePiece;
                 switch (choix) {
@@ -255,21 +257,13 @@ public class Jeu {
 
 
     private void afficherMessage(String titre, String message) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-        JLabel label = new JLabel("<html><div style='text-align: center;'>"
-                + "<span style='font-weight: bold; font-size: 16px;'>" + titre + "</span><br><br>"
-                + "<span style='font-size: 14px;'>" + message + "</span></div></html>");
-
-        label.setHorizontalAlignment(SwingConstants.CENTER);
-        label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-
-        panel.add(Box.createVerticalStrut(20));
-        panel.add(label);
-        panel.add(Box.createVerticalStrut(20));
-
-        JOptionPane.showMessageDialog(null, panel, titre, JOptionPane.INFORMATION_MESSAGE);
+        String messageComplet = titre + " : " + message;
+        if (interfaceUtilisateur != null) {
+            interfaceUtilisateur.afficherMessage(messageComplet);
+        } else {
+            // fallback console
+            System.out.println(messageComplet);
+        }
     }
 
     public void verifierFinPartie() {
@@ -392,7 +386,9 @@ public class Jeu {
         panel.add(titre);
         panel.add(Box.createVerticalStrut(20));
 
-        JOptionPane.showMessageDialog(null, panel, " Fin de la Partie ", JOptionPane.INFORMATION_MESSAGE);
+        if (interfaceUtilisateur != null) {
+            interfaceUtilisateur.afficherMessage( message);
+        }
 
         if (vueEchiquier != null) {
             vueEchiquier.setEnabled(false);

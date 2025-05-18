@@ -11,7 +11,7 @@ public class Plateau extends Observable {
     public static int SIZE_Y;
     private final Case[][] cases;
 
-    public Plateau(Plateau original) {
+    public Plateau(Plateau original){
         SIZE_X = 8;
         SIZE_Y = 8;
         cases = new Case[SIZE_X][SIZE_Y];
@@ -288,6 +288,33 @@ public class Plateau extends Observable {
                 cases[i][j].setPiece(null);
             }
         }
+    }
+    public Case getCaseDepuisNotation(String notation) {
+        if (notation == null || notation.length() != 2) return null;
+
+        char colonne = notation.charAt(0);
+        char ligne = notation.charAt(1);
+
+        int x = colonne - 'a'; // 'a' -> 0, 'b' -> 1, ...
+        int y = SIZE_Y - (ligne - '0'); // ligne '1' = y=7 (en bas), '8' = y=0 (en haut)
+
+        if (x < 0 || x >= SIZE_X || y < 0 || y >= SIZE_Y) return null;
+
+        return getCase(x, y);
+    }
+    //  méthode toString()
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (int y = 0; y < SIZE_Y; y++) {
+            for (int x = 0; x < SIZE_X; x++) {
+                Piece p = cases[x][y].getPiece();
+                sb.append(p == null ? "." : p.getNom().charAt(0)); // Exemple : afficher la première lettre du nom
+                sb.append(" ");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 
     // ♟️ test roque (petit et grand, blanc et noir)

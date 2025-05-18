@@ -1,62 +1,89 @@
 package Vue;
 
+import controleur.ControleurConsole;
 import controleur.ControleurEchiquier;
 import modele.Jeu;
 import modele.Plateau;
 
+import javax.swing.*;
+
 public class Main {
+
     public static void main(String[] args) {
-        // Création du plateau de jeu
+        // Afficher une boîte de dialogue Swing pour choisir le mode de jeu
+        String[] options = {"Mode Console", "Mode Graphique"};
+        int choix = JOptionPane.showOptionDialog(
+                null,
+                "Bienvenue au jeu d'échecs !\nChoisissez le mode de jeu :",
+                "Menu de démarrage",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]);
+
+        if (choix == 0) {
+            lancerJeuConsole();
+        } else if (choix == 1) {
+            lancerNouvellePartie();
+        } else {
+            System.out.println("Aucun mode sélectionné. Fermeture.");
+        }
+    }
+
+    private static void lancerJeuConsole() {
         Plateau plateau = new Plateau(8, 8);
 
-        // Création de la vue (le menu de démarrage est géré dans le constructeur)
-        VueEchiquier vue = new VueEchiquier(plateau);
+        String nomBlanc = JOptionPane.showInputDialog(null, "Nom du joueur Blanc :", "Blanc");
+        if (nomBlanc == null || nomBlanc.trim().isEmpty()) nomBlanc = "Blanc";
 
-        // Récupération des paramètres de la partie depuis la vue
-        String nomJoueurBlanc = vue.getNomJoueurBlanc();
-        String nomJoueurNoir = vue.getNomJoueurNoir();
-        int tempsParJoueur = vue.getTempsParJoueur();
+        String nomNoir = JOptionPane.showInputDialog(null, "Nom du joueur Noir :", "Noir");
+        if (nomNoir == null || nomNoir.trim().isEmpty()) nomNoir = "Noir";
 
-        // Création de l'objet Jeu avec les paramètres
-        Jeu jeu = new Jeu(plateau, nomJoueurBlanc, nomJoueurNoir, tempsParJoueur);
-        plateau.setJeu(jeu); // Lier le jeu au plateau
+        int dureeChrono = 600;
+        try {
+            String input = JOptionPane.showInputDialog(null, "Durée par joueur (minutes) :", "10");
+            int minutes = Integer.parseInt(input);
+            if (minutes > 0) dureeChrono = minutes * 60;
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Entrée invalide. Durée par défaut : 10 minutes.");
+        }
 
-        // Création du contrôleur
-        ControleurEchiquier controleur = new ControleurEchiquier(jeu, vue);
-
-        // Affichage de la vue
-        vue.setVisible(true);
-
-        // Lancer le chronomètre
-        jeu.demarrerChronometre();
+        Jeu jeu = new Jeu(plateau, nomBlanc, nomNoir, dureeChrono);
+        VueConsole vue = new VueConsole(new java.util.Scanner(System.in));
+        ControleurConsole controleur = new ControleurConsole(jeu, vue);
+        controleur.demarrerPartie();
     }
+
     public static void lancerNouvellePartie() {
-        // Création du plateau de jeu
-        Plateau plateau = new Plateau(8, 8);
+        SwingUtilities.invokeLater(() -> {
+            try {
+                Plateau plateau = new Plateau(8, 8);
+                VueGraphique vue = new VueGraphique(plateau);
 
-        // Création de la vue (le menu de démarrage est géré dans le constructeur)
-        VueEchiquier vue = new VueEchiquier(plateau);
+                vue.afficherMenuDemarrage();
 
-        // Récupération des paramètres de la partie depuis la vue
-        String nomJoueurBlanc = vue.getNomJoueurBlanc();
-        String nomJoueurNoir = vue.getNomJoueurNoir();
-        int tempsParJoueur = vue.getTempsParJoueur();
+                if (vue.estParametrageValide()) {
+                    String nomJoueurBlanc = vue.getNomJoueurBlanc();
+                    String nomJoueurNoir = vue.getNomJoueurNoir();
+                    int tempsParJoueur = vue.getTempsParJoueur();
 
-        // Création de l'objet Jeu avec les paramètres
-        Jeu jeu = new Jeu(plateau, nomJoueurBlanc, nomJoueurNoir, tempsParJoueur);
-        plateau.setJeu(jeu); // Lier le jeu au plateau
+                    Jeu jeu = new Jeu(plateau, nomJoueurBlanc, nomJoueurNoir, tempsParJoueur);
+                    plateau.setJeu(jeu);
+                    jeu.setInterfaceUtilisateur(vue);
 
-        // Création du contrôleur
-        ControleurEchiquier controleur = new ControleurEchiquier(jeu, vue);
+                    ControleurEchiquier controleur = new ControleurEchiquier(jeu, vue);
+                    vue.setControleur(controleur);
 
-        // Associer le contrôleur à la vue si nécessaire
-        vue.setControleur(controleur);
-
-        // Affichage de la vue
-        vue.setVisible(true);
-
-        // Lancer le chronomètre
-        jeu.demarrerChronometre();
+                    vue.setVisible(true);
+                    jeu.demarrerChronometre();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Paramètres invalides. Fermeture.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Erreur : " + e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+            }
+        });
     }
-
 }
