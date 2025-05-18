@@ -1,7 +1,9 @@
 package Vue;
 
+import controleur.ControleurEchiquier;
 import modele.*;
 import modele.Pieces.*;
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +19,10 @@ public class VueEchiquier extends JFrame {
     private static JLabel labelChronoBlanc;
     private static JLabel labelChronoNoir;
     private static JLabel labelTour;
+    private String nomJoueurBlanc = "Blanc";
+    private String nomJoueurNoir = "Noir";
+    private int tempsParJoueur = 300; // en secondes
+
     private final List<CaseClickListener> listeners = new ArrayList<>();
     private final JPanel panelCapturesBlanc = new JPanel();
     private final JPanel panelCapturesNoir = new JPanel();
@@ -43,6 +49,7 @@ public class VueEchiquier extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
+        // Grille de l'échiquier
         JPanel grille = new JPanel(new GridLayout(sizeY, sizeX));
         tabJLabel = new JLabel[sizeX][sizeY];
 
@@ -64,6 +71,7 @@ public class VueEchiquier extends JFrame {
             }
         }
 
+        // Panel en haut : chronos + tour
         JPanel panelHaut = new JPanel(new FlowLayout(FlowLayout.CENTER, 40, 10));
         labelChronoBlanc = new JLabel("Blanc: 05:00");
         labelChronoNoir = new JLabel("Noir: 05:00");
@@ -78,6 +86,7 @@ public class VueEchiquier extends JFrame {
         panelHaut.add(labelTour);
         panelHaut.add(labelChronoNoir);
 
+        // Panels des captures
         JPanel panelCaptures = new JPanel(new GridLayout(1, 2, 10, 0));
         panelCapturesBlanc.setLayout(new FlowLayout(FlowLayout.LEFT));
         panelCapturesBlanc.setBorder(BorderFactory.createTitledBorder("Captures Blanc"));
@@ -86,60 +95,122 @@ public class VueEchiquier extends JFrame {
         panelCaptures.add(panelCapturesBlanc);
         panelCaptures.add(panelCapturesNoir);
 
+        // Bouton Recommencer
         JButton btnRecommencer = new JButton("Recommencer");
-        btnRecommencer.setFont(new Font("SansSerif", Font.BOLD, 14));
         btnRecommencer.addActionListener(e -> {
             int option = JOptionPane.showConfirmDialog(this, "Voulez-vous vraiment recommencer la partie ?", "Confirmation", JOptionPane.YES_NO_OPTION);
             if (option == JOptionPane.YES_OPTION) {
-                this.dispose();
-                new VueEchiquier(new Plateau(8,8)).setVisible(true);
+                reinitialiserPlateau();
+                reinitialiserChronos(tempsParJoueur); //  ici on utilise la bonne valeur
             }
         });
-        JPanel panelDroite = new JPanel(new BorderLayout());
-        panelDroite.add(btnRecommencer, BorderLayout.NORTH);
 
+        // Bouton Retour au menu
+        JButton btnRetourMenu = new JButton("Retour au menu");
+        btnRetourMenu.setFont(new Font("Arial", Font.PLAIN, 12));
+        btnRetourMenu.addActionListener(e -> {
+            int option = JOptionPane.showConfirmDialog(this, "Voulez-vous revenir au menu principal ? La partie actuelle sera perdue.", "Retour au menu", JOptionPane.YES_NO_OPTION);
+            if (option == JOptionPane.YES_OPTION) {
+                this.dispose(); // Ferme complètement la fenêtre actuelle
+               Main.lancerNouvellePartie(); // Lance une nouvelle partie à partir de zéro
+            }
+        });
+
+
+        // Panel bas : captures + bouton centré en dessous
+        JPanel panelBas = new JPanel(new BorderLayout());
+        panelBas.add(panelCaptures, BorderLayout.CENTER);
+
+        JPanel panelBouton = new JPanel();
+        panelBouton.add(btnRecommencer);
+        panelBouton.add(btnRetourMenu);
+        panelBas.add(panelBouton, BorderLayout.SOUTH);
+
+        // Layout principal
         this.setLayout(new BorderLayout(10, 10));
         this.add(grille, BorderLayout.CENTER);
         this.add(panelHaut, BorderLayout.NORTH);
-        this.add(panelCaptures, BorderLayout.SOUTH);
-        this.add(panelDroite, BorderLayout.EAST);
+        this.add(panelBas, BorderLayout.SOUTH);
     }
 
     private void afficherMenuDemarrage() {
-        JDialog dialog = new JDialog(this, "Choix du mode de jeu", true);
-        dialog.setSize(350, 230);
+        JDialog dialog = new JDialog(this, "Paramètres de la partie", true);
+        dialog.setSize(400, 350);
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(this);
 
-        JLabel label = new JLabel("Choisissez le mode de jeu :", SwingConstants.CENTER);
+        // Titre
+        JLabel label = new JLabel("Paramètres de la partie", SwingConstants.CENTER);
         label.setFont(new Font("Arial", Font.BOLD, 18));
         label.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         dialog.add(label, BorderLayout.NORTH);
 
-        JPanel panelBoutons = new JPanel(new GridLayout(2, 1, 10, 10));
+        // Panneau central avec champs de saisie
+        JPanel panelCentre = new JPanel();
+        panelCentre.setLayout(new BoxLayout(panelCentre, BoxLayout.Y_AXIS));
+        panelCentre.setBorder(BorderFactory.createEmptyBorder(10, 30, 10, 30));
+
+        JTextField nomBlancField = new JTextField(20);
+        JTextField nomNoirField = new JTextField(20);
+        JTextField chronoField = new JTextField(5);
+
+        panelCentre.add(new JLabel("Nom du joueur Blanc :"));
+        panelCentre.add(nomBlancField);
+        panelCentre.add(Box.createVerticalStrut(10));
+        panelCentre.add(new JLabel("Nom du joueur Noir :"));
+        panelCentre.add(nomNoirField);
+        panelCentre.add(Box.createVerticalStrut(10));
+        panelCentre.add(new JLabel("Durée du chrono par joueur (en minutes) :"));
+        panelCentre.add(chronoField);
+
+        dialog.add(panelCentre, BorderLayout.CENTER);
+
+        // Boutons pour choisir le mode de jeu
+        JPanel panelBas = new JPanel(new GridLayout(2, 1, 10, 10));
+        panelBas.setBorder(BorderFactory.createEmptyBorder(10, 30, 10, 30));
+
         JButton btnJoueurVsJoueur = new JButton("Joueur vs Joueur");
         JButton btnJoueurVsIA = new JButton("Joueur vs IA");
 
-        btnJoueurVsJoueur.setFont(new Font("Arial", Font.PLAIN, 16));
-        btnJoueurVsIA.setFont(new Font("Arial", Font.PLAIN, 16));
+        ActionListener startGameListener = e -> {
+            // Récupération et validation des champs
+            String nomBlanc = nomBlancField.getText().trim();
+            String nomNoir = nomNoirField.getText().trim();
+            String chronoInput = chronoField.getText().trim();
 
-        btnJoueurVsJoueur.addActionListener(e -> {
-            vsIA = false;
+            if (nomBlanc.isEmpty()) nomBlanc = "Blanc";
+            if (nomNoir.isEmpty()) nomNoir = "Noir";
+
+            int dureeMinutes = 5;
+            try {
+                dureeMinutes = Integer.parseInt(chronoInput);
+                if (dureeMinutes <= 0) throw new NumberFormatException();
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, "Entrée invalide pour le chrono. 5 minutes seront utilisées par défaut.");
+                dureeMinutes = 5;
+            }
+            int dureeEnSecondes = dureeMinutes * 60;
+
+            // Affectation des valeurs et démarrage
+            this.nomJoueurBlanc = nomBlanc;
+            this.nomJoueurNoir = nomNoir;
+            this.tempsParJoueur = dureeEnSecondes;
+            vsIA = (e.getSource() == btnJoueurVsIA);
+
             dialog.dispose();
-            changerTour("Blanc");
-        });
+            changerTour("blanc");
+        };
 
-        btnJoueurVsIA.addActionListener(e -> {
-            vsIA = true;
-            dialog.dispose();
-            changerTour("Blanc");
-        });
+        btnJoueurVsJoueur.addActionListener(startGameListener);
+        btnJoueurVsIA.addActionListener(startGameListener);
 
-        panelBoutons.add(btnJoueurVsJoueur);
-        panelBoutons.add(btnJoueurVsIA);
-        dialog.add(panelBoutons, BorderLayout.CENTER);
+        panelBas.add(btnJoueurVsJoueur);
+        panelBas.add(btnJoueurVsIA);
+
+        dialog.add(panelBas, BorderLayout.SOUTH);
         dialog.setVisible(true);
     }
+
 
     public boolean isVsIA() {
         return vsIA;
@@ -224,8 +295,14 @@ public class VueEchiquier extends JFrame {
         return String.format("%02d:%02d", minutes, secondes);
     }
 
-    public static void changerTour(String joueur) {
-        labelTour.setText("C'est au tour du joueur " + joueur);
+    public void changerTour(String joueur) {
+        if (joueur.equalsIgnoreCase("blanc")) {
+            labelTour.setText("C'est au tour du joueur " + nomJoueurBlanc);
+        } else if (joueur.equalsIgnoreCase("noir")) {
+            labelTour.setText("C'est au tour du joueur " + nomJoueurNoir);
+        } else {
+            labelTour.setText("C'est au tour du joueur " + joueur);
+        }
     }
 
     public void desactiverPlateau() {
@@ -244,11 +321,59 @@ public class VueEchiquier extends JFrame {
         } else {
             panelCapturesBlanc.add(labelIcone);
         }
-        revalidate();
-        repaint();
+        panelCapturesBlanc.revalidate();
+        panelCapturesNoir.revalidate();
+        panelCapturesBlanc.repaint();
+        panelCapturesNoir.repaint();
     }
 
+    private void reinitialiserPlateau() {
+        plateau.reset();  // doit remettre les pièces à leur place d'origine
+        mettreAJourAffichage();
+        panelCapturesBlanc.removeAll();
+        panelCapturesNoir.removeAll();
+        panelCapturesBlanc.revalidate();
+        panelCapturesNoir.revalidate();
+        panelCapturesBlanc.repaint();
+        panelCapturesNoir.repaint();
+        Jeu.remettreTourBlanc();  // ou autre logique de tour
+    }
+
+
+    public String getNomJoueurBlanc() {
+        return nomJoueurBlanc;
+    }
+
+    public String getNomJoueurNoir() {
+        return nomJoueurNoir;
+    }
+
+    public int getTempsParJoueur() {
+        return tempsParJoueur;
+    }
+    // Méthode pour afficher une alerte pop-up
+    public void afficherAlerte(String message) {
+        JOptionPane.showMessageDialog(this, message);
+    }
+
+    public void afficherMessage(String message) {
+        System.out.println(message);
+    }
+        // Mise à jour affichage tour joueur
+        public void mettreAJourTour(String nomJoueur) {
+            // Exemple : labelTour.setText("Tour de : " + nomJoueur);
+        }
+
+    public void setControleur(ControleurEchiquier controleur) {
+    }
+
+    // Interface pour écouter les clics sur une case
     public interface CaseClickListener {
         void onCaseClicked(Case c);
     }
+    public static void reinitialiserChronos(int tempsInitial) {
+        miseAJourChronoBlanc(tempsInitial);
+        miseAJourChronoNoir(tempsInitial);
+    }
+
 }

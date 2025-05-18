@@ -185,46 +185,72 @@ public class Plateau extends Observable {
                     for (Case cible : destinations) {
                         if (cible == null) continue;
 
+                        // Sauvegarde de l'état du plateau
                         Piece pieceCapturee = cible.getPiece();
                         Case ancienneCase = piece.getCase();
 
+                        // Simulation du coup
                         cible.setPiece(piece);
                         source.setPiece(null);
                         piece.setCase(cible);
 
+                        // Vérifier si roi est en échec après ce coup
                         boolean roiEnEchec = estEnEchec(couleur);
 
+                        // Annuler la simulation (restauration)
                         source.setPiece(piece);
                         cible.setPiece(pieceCapturee);
                         piece.setCase(ancienneCase);
 
-                        if (!roiEnEchec) return false;
-                    }
-                }
-            }
-        }
-
-        return true;
-    }
-
-    public List<Coup> getTousLesCoupsPossiblesPour(String couleur) {
-        List<Coup> coups = new ArrayList<>();
-
-        for (int x = 0; x < 8; x++) {
-            for (int y = 0; y < 8; y++) {
-                Case c = cases[x][y];
-                Piece p = c.getPiece();
-                if (p != null && p.getCouleur().equals(couleur)) {
-                    for (Case cible : p.getCasesAccessibles()) {
-                        if (p.peutDeplacer(c, cible)) {
-                            coups.add(new Coup(p, c, cible, cible.getPiece()));
+                        if (!roiEnEchec) {
+                            return false; // Il y a un coup légal possible => pas échec et mat
                         }
                     }
                 }
             }
         }
-        return coups;
+
+        return true; // aucun coup légal trouvé, donc échec et mat
     }
+
+
+
+    public List<Coup> getTousLesCoupsLegauxPour(String couleur) {
+        List<Coup> coupsLegaux = new ArrayList<>();
+
+        for (int x = 0; x < SIZE_X; x++) {
+            for (int y = 0; y < SIZE_Y; y++) {
+                Case source = cases[x][y];
+                Piece p = source.getPiece();
+
+                if (p != null && p.getCouleur().equals(couleur)) {
+                    for (Case cible : p.getCasesAccessibles()) {
+                        if (p.peutDeplacer(source, cible)) {
+                            // Simuler le coup
+                            Piece pieceCapturee = cible.getPiece();
+                            cible.setPiece(p);
+                            source.setPiece(null);
+                            p.setCase(cible);
+
+                            boolean roiEnEchec = estEnEchec(couleur);
+
+                            // Revenir en arrière
+                            source.setPiece(p);
+                            cible.setPiece(pieceCapturee);
+                            p.setCase(source);
+
+                            if (!roiEnEchec) {
+                                coupsLegaux.add(new Coup(p, source, cible, pieceCapturee));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return coupsLegaux;
+    }
+
 
     public void appliquerCoup(Coup c) {
         Case depart = c.getCaseDepart();
@@ -236,4 +262,19 @@ public class Plateau extends Observable {
             piece.setCase(arrivee); // Assure-toi que setCase existe bien dans la classe Piece
         }
     }
+    public void reset() {
+        // Réinitialise toutes les cases sans pièce
+        for (int x = 0; x < SIZE_X; x++) {
+            for (int y = 0; y < SIZE_Y; y++) {
+                cases[x][y].setPiece(null);
+            }
+        }
+
+        // Réinitialise les pièces comme au début
+        initialiserPartie();
+
+        // Notifie les observateurs d'un changement
+        notifierChangement();
+    }
+
 }

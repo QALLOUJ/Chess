@@ -86,4 +86,30 @@ public class PGNExporter {
         return prefixe + (prefixe.equals("") && capture.equals("x") ? colonneDepart : "")
                 + capture + colonneArrivee + ligneArrivee;
     }
+    public static String getPGNString(Jeu jeu, List<Coup> historique, String resultat) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("[Event \"Partie d'échecs\"]\n");
+        sb.append("[Site \"Local\"]\n");
+        sb.append("[Date \"").append(LocalDate.now()).append("\"]\n");
+        sb.append("[White \"").append(jeu.getJoueurBlanc().getNom()).append("\"]\n");
+        sb.append("[Black \"").append(jeu.getJoueurNoir().getNom()).append("\"]\n");
+        sb.append("[Result \"").append(resultat).append("\"]\n\n");
+
+        int numCoup = 1;
+        for (int i = 0; i < historique.size(); i++) {
+            if (i % 2 == 0) {
+                sb.append(numCoup).append(". ");
+                numCoup++;
+            }
+
+            Coup coup = historique.get(i);
+            String notation = genererNotation(coup);
+            sb.append(notation).append(" ");
+        }
+
+        sb.append(resultat).append("\n");
+        return sb.toString();
+    }
+
 }

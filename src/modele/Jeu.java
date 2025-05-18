@@ -1,15 +1,22 @@
 package modele;
 
-import modele.Pieces.Roi;
-import modele.Pieces.Tour;
-import modele.Pieces.Pion;
+import modele.Pieces.*;
 
 import Vue.VueEchiquier;
 
+import java.util.List;
+import java.util.ArrayList;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Jeu {
     private final Joueur joueurBlanc;
@@ -24,6 +31,10 @@ public class Jeu {
     private boolean partieEnCours = true; // Pour savoir si la partie est encore en cours
     private VueEchiquier vueEchiquier;
     private boolean iaActivee = false;
+    private boolean messageEchecAffiche = false;
+    private static boolean tourBlanc = true;
+
+
 
 
     public Jeu(Plateau plateau, String nomBlanc, String nomNoir, int dureeChronoEnSecondes) {
@@ -94,6 +105,8 @@ public class Jeu {
     }
 
     public void changerTour() {
+        if (!partieEnCours) return;
+
         if (joueurCourant == joueurBlanc) {
             if (timerBlanc != null) timerBlanc.stop();
             if (timerNoir != null) timerNoir.start();
@@ -103,7 +116,9 @@ public class Jeu {
             if (timerBlanc != null) timerBlanc.start();
             joueurCourant = joueurBlanc;
         }
+        tourBlanc = !tourBlanc;
     }
+
 
     public boolean demandeDeplacementPiece(Case source, Case arrive) {
         Piece piece = source.getPiece();
@@ -177,19 +192,19 @@ public class Jeu {
                 Piece nouvellePiece;
                 switch (choix) {
                     case "Reine":
-                        nouvellePiece = new modele.Pieces.Reine(piece.getCouleur());
+                        nouvellePiece = new Reine(piece.getCouleur());
                         break;
                     case "Tour":
-                        nouvellePiece = new modele.Pieces.Tour(piece.getCouleur());
+                        nouvellePiece = new Tour(piece.getCouleur());
                         break;
                     case "Fou":
-                        nouvellePiece = new modele.Pieces.Fou(piece.getCouleur());
+                        nouvellePiece = new Fou(piece.getCouleur());
                         break;
                     case "Cavalier":
-                        nouvellePiece = new modele.Pieces.Cavalier(piece.getCouleur());
+                        nouvellePiece = new Cavalier(piece.getCouleur());
                         break;
                     default:
-                        nouvellePiece = new modele.Pieces.Reine(piece.getCouleur());
+                        nouvellePiece = new Reine(piece.getCouleur());
                         break;
                 }
 
@@ -198,11 +213,11 @@ public class Jeu {
             }
         }
 
-        changerTour();
+
         plateau.notifierChangement();
 
         verifierEchecEtMat(joueurCourant.getCouleur());
-
+        changerTour();
         return true;
     }
 
@@ -219,7 +234,12 @@ public class Jeu {
 
     private void verifierEchecEtMat(String couleur) {
         if (plateau.estEnEchec(couleur)) {
-            afficherMessage("Échec, attention !", "Le roi de " + couleur + " est en échec !");
+            if (!messageEchecAffiche) {
+                afficherMessage("Échec, attention !", "Le roi de " + couleur + " est en échec !");
+                messageEchecAffiche = true;
+            }
+        } else {
+            messageEchecAffiche = false; // Réinitialisation quand le roi n'est plus en échec
         }
 
         if (plateau.estEchecEtMat(couleur)) {
@@ -233,12 +253,11 @@ public class Jeu {
 
     private void afficherMessage(String titre, String message) {
         JPanel panel = new JPanel();
-        panel.setBackground(new Color(255, 192, 203));
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JLabel label = new JLabel("<html><div style='text-align: center;'>"
-                + "<h1 style='color: white; font-size: 18px;'>" + titre + "</h1>"
-                + "<p style='color: white; font-size: 14px;'><strong>" + message + "</strong></p>"
+                + "<h1 style='color: black; font-size: 18px;'>" + titre + "</h1>"
+                + "<p style='color: black; font-size: 14px;'><strong>" + message + "</strong></p>"
                 + "</div></html>");
         label.setHorizontalAlignment(SwingConstants.CENTER);
         label.setAlignmentX(JComponent.CENTER_ALIGNMENT);
@@ -258,11 +277,107 @@ public class Jeu {
         }
     }
 
+    public void sauvegarderEnPGN(String chemin, String resultat) {
+        PGNExporter.exporter(this, historique, chemin, resultat);
+    }
+    public void sauvegarderEchiquierEtPGNEnPNG(String nomFichierPNG, String resultat) {
+        int largeur = vueEchiquier.getWidth();
+        int hauteurEchiquier = vueEchiquier.getHeight();
+        int hauteurPGN = 150; // Ajuste si nécessaire
+        int hauteurTotale = hauteurEchiquier + hauteurPGN;
+
+        // Créer une image avec de l'espace pour le PGN
+        BufferedImage image = new BufferedImage(largeur, hauteurTotale, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = image.createGraphics();
+
+        // Dessiner l'échiquier
+        vueEchiquier.paint(g2d);
+
+        // Récupérer le texte PGN
+        String pgnText = PGNExporter.getPGNString(this, historique, resultat);
+
+        // Définir une police lisible
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font("Monospaced", Font.PLAIN, 14));
+
+        // Fond noir sous l’échiquier pour le texte
+        g2d.setColor(Color.BLACK);
+        g2d.fillRect(0, hauteurEchiquier, largeur, hauteurPGN);
+
+        // Dessiner le texte PGN
+        g2d.setColor(Color.WHITE);
+        int x = 10;
+        int y = hauteurEchiquier + 20;
+        for (String line : wrapText(pgnText, 80)) {
+            g2d.drawString(line, x, y);
+            y += 18;
+        }
+
+        g2d.dispose();
+
+        try {
+            ImageIO.write(image, "png", new File(nomFichierPNG));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Méthode pour couper le texte PGN en lignes de taille raisonnable
+    private List<String> wrapText() {
+        return wrapText(null, 0);
+    }
+
+    // Méthode pour couper le texte PGN en lignes de taille raisonnable
+    private List<String> wrapText(String text, int maxLineLength) {
+        List<String> lines = new ArrayList<>();
+        StringBuilder currentLine = new StringBuilder();
+
+        for (String word : text.split(" ")) {
+            if (currentLine.length() + word.length() + 1 > maxLineLength) {
+                lines.add(currentLine.toString());
+                currentLine = new StringBuilder();
+            }
+            if (!currentLine.isEmpty()) {
+                currentLine.append(" ");
+            }
+            currentLine.append(word);
+        }
+        if (!currentLine.isEmpty()) {
+            lines.add(currentLine.toString());
+        }
+
+        return lines;
+    }
+
+
+
     public void finPartie(String message) {
         partieEnCours = false;
         if (timerBlanc != null) timerBlanc.stop();
         if (timerNoir != null) timerNoir.stop();
 
+        //  Sauvegarde PGN
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String nomFichierPGN = "sauvegardes/partie_" + timestamp + ".pgn";
+        new File("sauvegardes").mkdirs(); // Crée le dossier si besoin
+
+        String resultat;
+        if (message.toLowerCase().contains("blanc")) {
+            resultat = "1-0";
+        } else if (message.toLowerCase().contains("noir")) {
+            resultat = "0-1";
+        } else {
+            resultat = "1/2-1/2";
+        }
+
+        sauvegarderEnPGN(nomFichierPGN, resultat);
+
+        //  Sauvegarde image PNG
+        String nomFichierPNG = "captures/echiquier_fin_" + timestamp + ".png";
+        new File("captures").mkdirs();
+        sauvegarderEchiquierEtPGNEnPNG(nomFichierPNG, resultat); // À condition que cette méthode prenne un nom de fichier
+
+        //  Affichage message fin de partie
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(Color.BLACK);
@@ -274,7 +389,7 @@ public class Jeu {
         panel.add(titre);
         panel.add(Box.createVerticalStrut(20));
 
-        JOptionPane.showMessageDialog(null, panel, "🎉 Fin de la Partie 🎉", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(null, panel, " Fin de la Partie ", JOptionPane.INFORMATION_MESSAGE);
 
         if (vueEchiquier != null) {
             vueEchiquier.setEnabled(false);
@@ -282,6 +397,7 @@ public class Jeu {
             vueEchiquier.desactiverPlateau();
         }
     }
+
 
     public void setVueEchiquier(VueEchiquier vueEchiquier) {
         this.vueEchiquier = vueEchiquier;
@@ -295,9 +411,7 @@ public class Jeu {
         return joueurBlanc;
     }
 
-    public void sauvegarderEnPGN(String chemin, String resultat) {
-        modele.PGNExporter.exporter(this, historique, chemin, resultat);
-    }
+
 
     public ArrayList<Coup> getHistorique() {
         return historique;
@@ -312,5 +426,9 @@ public class Jeu {
 
     public boolean isPartieEnCours() {
         return partieEnCours;
+    }
+
+    public static void remettreTourBlanc() {
+        tourBlanc = true;
     }
 }
