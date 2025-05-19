@@ -17,11 +17,11 @@ public class Demo {
             vue.setLocationRelativeTo(null);
             vue.setVisible(true);
             // Choix du scénario de test
-            String scenario = "enpassant";// "enpassant", "promotion", "mat", ou "" pour normal
+            //String scenario = "enpassant";// "enpassant", "promotion", "mat", ou "" pour normal
             //String scenario = "roque";
-            //String scenario = "promotion";
+            String scenario = "promotion";
             //String scenario = "echec";
-            //String scenario = "Mat";
+
             initialiserScenario(plateau, scenario);
             vue.mettreAJourAffichage();
             jeu.verifierEchecEtMat("blanc");

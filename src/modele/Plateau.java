@@ -347,7 +347,7 @@ public class Plateau extends Observable {
     //test promotion
     public void initialiserPromotionTest() {
         reinitialiser();
-        setPiece(new Pion("blanc"), 2, 2); // a7, va en a8 pour promotion
+        setPiece(new Pion("blanc"), 2, 1);
     }
     public void initialiserEchecTest() {
         reinitialiser();
