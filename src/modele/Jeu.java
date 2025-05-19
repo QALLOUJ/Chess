@@ -2,7 +2,6 @@ package modele;
 
 import Vue.InterfaceUtilisateur;
 import modele.Pieces.*;
-
 import Vue.VueEchiquier;
 
 import java.util.List;
@@ -28,15 +27,12 @@ public class Jeu {
     private Timer timerNoir;
     private int tempsRestantBlanc;
     private int tempsRestantNoir;
-    private boolean partieEnCours = true; // Pour savoir si la partie est encore en cours
+    private boolean partieEnCours = true;
     private VueEchiquier vueEchiquier;
     private boolean iaActivee = false;
     private boolean messageEchecAffiche = false;
     private static boolean tourBlanc = true;
     private InterfaceUtilisateur interfaceUtilisateur;
-
-
-
 
     public Jeu(Plateau plateau, String nomBlanc, String nomNoir, int dureeChronoEnSecondes) {
         this.plateau = plateau;
@@ -48,11 +44,11 @@ public class Jeu {
     }
 
     public Jeu(Jeu original) {
-        this.plateau = new Plateau(8,8); // copie profonde à implémenter dans Plateau
+        this.plateau = new Plateau(8, 8);
         this.joueurBlanc = new Joueur(original.joueurBlanc);
         this.joueurNoir = new Joueur(original.joueurNoir);
         this.joueurCourant = original.joueurCourant.getCouleur().equals("blanc") ? joueurBlanc : joueurNoir;
-        this.historique = new ArrayList<>(original.historique); // copie superficielle, faire profonde si nécessaire
+        this.historique = new ArrayList<>(original.historique);
         this.tempsRestantBlanc = original.tempsRestantBlanc;
         this.tempsRestantNoir = original.tempsRestantNoir;
         this.partieEnCours = original.partieEnCours;
@@ -60,20 +56,19 @@ public class Jeu {
     }
 
     public void demarrerChronometre() {
-        ActionListener actionListenerBlanc = e -> {
+        ActionListener actionBlanc = e -> {
             if (tempsRestantBlanc > 0 && partieEnCours) {
                 tempsRestantBlanc--;
                 if (interfaceUtilisateur != null) {
                     interfaceUtilisateur.miseAJourChrono("blanc", tempsRestantBlanc);
                     interfaceUtilisateur.miseAJourChrono("noir", tempsRestantNoir);
                 }
-
             } else if (timerBlanc != null) {
                 timerBlanc.stop();
             }
         };
 
-        ActionListener actionListenerNoir = e -> {
+        ActionListener actionNoir = e -> {
             if (tempsRestantNoir > 0 && partieEnCours) {
                 tempsRestantNoir--;
                 VueEchiquier.miseAJourChronoNoir(tempsRestantNoir);
@@ -84,10 +79,10 @@ public class Jeu {
         };
 
         if (timerBlanc == null) {
-            timerBlanc = new Timer(1000, actionListenerBlanc);
+            timerBlanc = new Timer(1000, actionBlanc);
         }
         if (timerNoir == null) {
-            timerNoir = new Timer(1000, actionListenerNoir);
+            timerNoir = new Timer(1000, actionNoir);
         }
 
         timerBlanc.start();
@@ -108,6 +103,7 @@ public class Jeu {
     public boolean isTourIA() {
         return iaActivee && joueurCourant.getCouleur().equals("noir");
     }
+
     public void setIaActivee(boolean active) {
         this.iaActivee = active;
     }
@@ -127,105 +123,86 @@ public class Jeu {
         tourBlanc = !tourBlanc;
     }
 
-
-    public boolean demandeDeplacementPiece(Case source, Case arrive) {
+    public boolean demandeDeplacementPiece(Case source, Case arrivee) {
         Piece piece = source.getPiece();
-        if (piece == null || !piece.getCouleur().equals(joueurCourant.getCouleur()) || !piece.peutDeplacer(source, arrive)) {
+        if (piece == null || !piece.getCouleur().equals(joueurCourant.getCouleur()) || !piece.peutDeplacer(source, arrivee)) {
             return false;
         }
 
-        Piece pieceCapturee = arrive.getPiece();
+        Piece capture = arrivee.getPiece();
 
-        // Prise en passant
-        if (piece instanceof Pion && arrive.estVide()) {
-            int dx = arrive.getX() - source.getX();
-            int dy = arrive.getY() - source.getY();
+        // Cas spécial pour la prise en passant
+        if (piece instanceof Pion && arrivee.estVide()) {
+            int dx = arrivee.getX() - source.getX();
+            int dy = arrivee.getY() - source.getY();
             if (Math.abs(dx) == 1 && dy == (piece.getCouleur().equals("blanc") ? -1 : 1)) {
-                Case casePionPris = plateau.getCase(arrive.getX(), source.getY());
-                pieceCapturee = casePionPris.getPiece();
-                casePionPris.setPiece(null);
+                Case casePrise = plateau.getCase(arrivee.getX(), source.getY());
+                capture = casePrise.getPiece();
+                casePrise.setPiece(null);
             }
         }
 
-        // Afficher la pièce capturée (prise en passant ou normale)
-        if (pieceCapturee != null && vueEchiquier != null) {
-            vueEchiquier.ajouterCapture(pieceCapturee);
+        if (capture != null && vueEchiquier != null) {
+            vueEchiquier.ajouterCapture(capture);
         }
 
-        Coup coup = new Coup(piece, source, arrive, pieceCapturee);
-        effectuerDeplacement(source, arrive, piece);
-
+        Coup coup = new Coup(piece, source, arrivee, capture);
+        effectuerDeplacement(source, arrivee, piece);
         historique.add(coup);
 
-        // Gestion du roque
+        // Gestion du roque (petit et grand)
         if (piece instanceof Roi) {
-            int dx = arrive.getX() - source.getX();
+            int dx = arrivee.getX() - source.getX();
             if (Math.abs(dx) == 2) {
-                int y = source.getY();
-                if (dx > 0) { // Petit roque
-                    Case caseTour = plateau.getCase(7, y);
-                    Case caseTourDest = plateau.getCase(5, y);
-                    Piece tour = caseTour.getPiece();
-                    caseTourDest.setPiece(tour);
-                    caseTour.setPiece(null);
-                    tour.setCase(caseTourDest);
-                    ((Tour) tour).setABouge(true);
-                } else { // Grand roque
-                    Case caseTour = plateau.getCase(0, y);
-                    Case caseTourDest = plateau.getCase(3, y);
-                    Piece tour = caseTour.getPiece();
-                    caseTourDest.setPiece(tour);
-                    caseTour.setPiece(null);
-                    tour.setCase(caseTourDest);
-                    ((Tour) tour).setABouge(true);
+                int ligne = source.getY();
+                if (dx > 0) {
+                    deplacerTourPourRoque(7, 5, ligne);
+                } else {
+                    deplacerTourPourRoque(0, 3, ligne);
                 }
             }
         }
 
-        // Promotion du pion
+        // Promotion automatique d'un pion arrivé en bout
         if (piece instanceof Pion) {
             int lignePromotion = piece.getCouleur().equals("blanc") ? 0 : 7;
-            if (arrive.getY() == lignePromotion) {
+            if (arrivee.getY() == lignePromotion) {
                 String[] options = {"Reine", "Tour", "Fou", "Cavalier"};
                 String choix = interfaceUtilisateur.demanderChoixPromotion(options);
-
-
                 Piece nouvellePiece;
                 switch (choix) {
-                    case "Reine":
-                        nouvellePiece = new Reine(piece.getCouleur());
-                        break;
-                    case "Tour":
-                        nouvellePiece = new Tour(piece.getCouleur());
-                        break;
-                    case "Fou":
-                        nouvellePiece = new Fou(piece.getCouleur());
-                        break;
-                    case "Cavalier":
-                        nouvellePiece = new Cavalier(piece.getCouleur());
-                        break;
-                    default:
-                        nouvellePiece = new Reine(piece.getCouleur());
-                        break;
+                    case "Tour": nouvellePiece = new Tour(piece.getCouleur()); break;
+                    case "Fou": nouvellePiece = new Fou(piece.getCouleur()); break;
+                    case "Cavalier": nouvellePiece = new Cavalier(piece.getCouleur()); break;
+                    default: nouvellePiece = new Reine(piece.getCouleur()); break;
                 }
-
-                arrive.setPiece(nouvellePiece);
-                nouvellePiece.setCase(arrive);
+                arrivee.setPiece(nouvellePiece);
+                nouvellePiece.setCase(arrivee);
             }
         }
-
 
         plateau.notifierChangement();
         changerTour();
         verifierEchecEtMat(joueurCourant.getCouleur());
-
         return true;
     }
 
-    private void effectuerDeplacement(Case source, Case arrive, Piece piece) {
-        arrive.setPiece(piece);
+    private void deplacerTourPourRoque(int colonneDepart, int colonneArrivee, int ligne) {
+        Case caseTour = plateau.getCase(colonneDepart, ligne);
+        Case caseDestination = plateau.getCase(colonneArrivee, ligne);
+        Piece tour = caseTour.getPiece();
+        caseTour.setPiece(null);
+        caseDestination.setPiece(tour);
+        tour.setCase(caseDestination);
+        if (tour instanceof Tour) {
+            ((Tour) tour).setABouge(true);
+        }
+    }
+
+    private void effectuerDeplacement(Case source, Case arrivee, Piece piece) {
+        arrivee.setPiece(piece);
         source.setPiece(null);
-        piece.setCase(arrive);
+        piece.setCase(arrivee);
         if (piece instanceof Roi) {
             ((Roi) piece).setABouge(true);
         } else if (piece instanceof Tour) {
@@ -235,83 +212,64 @@ public class Jeu {
 
     public void verifierEchecEtMat(String couleur) {
         if (plateau.estEchecEtMat(couleur)) {
-            afficherMessage("Échec et Mat", joueurCourant.getNom() + " a remporté la partie !");
+            afficherMessage("Échec et Mat", joueurCourant.getNom() + " a gagné !");
             finPartie(joueurCourant.getNom() + " a gagné par Échec et Mat !");
-            return;
         } else if (plateau.estPat(couleur)) {
-            afficherMessage("Pat", "La partie est nulle par pat.");
-            finPartie("Partie nulle par pat.");
-            return;
-        }
-
-        if (plateau.estEnEchec(couleur)) {
-            if (!messageEchecAffiche) {
-                afficherMessage("Échec, attention !", "Le roi de " + couleur + " est en échec !");
-                messageEchecAffiche = true;
-            }
+            afficherMessage("Pat", "Match nul : situation de pat.");
+            finPartie("Match nul : pat.");
+        } else if (plateau.estEnEchec(couleur) && !messageEchecAffiche) {
+            afficherMessage("Échec", "Attention : le roi " + couleur + " est en échec !");
+            messageEchecAffiche = true;
         } else {
             messageEchecAffiche = false;
         }
     }
 
-
-
-    private void afficherMessage(String titre, String message) {
-        String messageComplet = titre + " : " + message;
+    private void afficherMessage(String titre, String contenu) {
+        String texte = titre + " : " + contenu;
         if (interfaceUtilisateur != null) {
-            interfaceUtilisateur.afficherMessage(messageComplet);
+            interfaceUtilisateur.afficherMessage(texte);
         } else {
-            // fallback console
-            System.out.println(messageComplet);
+            System.out.println(texte);
         }
     }
 
     public void verifierFinPartie() {
         if (tempsRestantBlanc <= 0) {
-            finPartie("Le joueur noir a gagné, temps écoulé !");
+            finPartie("Temps écoulé pour les blancs !");
         } else if (tempsRestantNoir <= 0) {
-            finPartie("Le joueur blanc a gagné, temps écoulé !");
+            finPartie("Temps écoulé pour les noirs !");
         }
     }
 
     public void sauvegarderEnPGN(String chemin, String resultat) {
         PGNExporter.exporter(this, historique, chemin, resultat);
     }
+
     public void sauvegarderEchiquierEtPGNEnPNG(String nomFichierPNG, String resultat) {
         int largeur = vueEchiquier.getWidth();
         int hauteurEchiquier = vueEchiquier.getHeight();
-        int hauteurPGN = 150; // Ajuste si nécessaire
-        int hauteurTotale = hauteurEchiquier + hauteurPGN;
+        int hauteurTexte = 150;
+        int hauteurTotale = hauteurEchiquier + hauteurTexte;
 
-        // Créer une image avec de l'espace pour le PGN
         BufferedImage image = new BufferedImage(largeur, hauteurTotale, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = image.createGraphics();
-
-        // Dessiner l'échiquier
         vueEchiquier.paint(g2d);
 
-        // Récupérer le texte PGN
-        String pgnText = PGNExporter.getPGNString(this, historique, resultat);
-
-        // Définir une police lisible
+        String pgn = PGNExporter.getPGNString(this, historique, resultat);
+        g2d.setColor(Color.BLACK);
+        g2d.fillRect(0, hauteurEchiquier, largeur, hauteurTexte);
         g2d.setColor(Color.WHITE);
         g2d.setFont(new Font("Monospaced", Font.PLAIN, 14));
 
-        // Fond noir sous l’échiquier pour le texte
-        g2d.setColor(Color.BLACK);
-        g2d.fillRect(0, hauteurEchiquier, largeur, hauteurPGN);
-
-        // Dessiner le texte PGN
-        g2d.setColor(Color.WHITE);
         int x = 10;
         int y = hauteurEchiquier + 20;
-        for (String line : wrapText(pgnText, 80)) {
-            g2d.drawString(line, x, y);
+        for (String ligne : wrapText(pgn, 80)) {
+            g2d.drawString(ligne, x, y);
             y += 18;
         }
 
         g2d.dispose();
-
         try {
             ImageIO.write(image, "png", new File(nomFichierPNG));
         } catch (IOException e) {
@@ -319,75 +277,45 @@ public class Jeu {
         }
     }
 
-    // Méthode pour couper le texte PGN en lignes de taille raisonnable
-    private List<String> wrapText() {
-        return wrapText(null, 0);
-    }
+    private List<String> wrapText(String texte, int longueurMax) {
+        List<String> lignes = new ArrayList<>();
+        StringBuilder ligneActuelle = new StringBuilder();
 
-    // Méthode pour couper le texte PGN en lignes de taille raisonnable
-    private List<String> wrapText(String text, int maxLineLength) {
-        List<String> lines = new ArrayList<>();
-        StringBuilder currentLine = new StringBuilder();
-
-        for (String word : text.split(" ")) {
-            if (currentLine.length() + word.length() + 1 > maxLineLength) {
-                lines.add(currentLine.toString());
-                currentLine = new StringBuilder();
+        for (String mot : texte.split(" ")) {
+            if (ligneActuelle.length() + mot.length() + 1 > longueurMax) {
+                lignes.add(ligneActuelle.toString());
+                ligneActuelle = new StringBuilder();
             }
-            if (!currentLine.isEmpty()) {
-                currentLine.append(" ");
-            }
-            currentLine.append(word);
+            if (!ligneActuelle.isEmpty()) ligneActuelle.append(" ");
+            ligneActuelle.append(mot);
         }
-        if (!currentLine.isEmpty()) {
-            lines.add(currentLine.toString());
+        if (!ligneActuelle.isEmpty()) {
+            lignes.add(ligneActuelle.toString());
         }
 
-        return lines;
+        return lignes;
     }
-
-
 
     public void finPartie(String message) {
         partieEnCours = false;
         if (timerBlanc != null) timerBlanc.stop();
         if (timerNoir != null) timerNoir.stop();
 
-        //  Sauvegarde PGN
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String nomFichierPGN = "sauvegardes/partie_" + timestamp + ".pgn";
-        new File("sauvegardes").mkdirs(); // Crée le dossier si besoin
-
-        String resultat;
-        if (message.toLowerCase().contains("blanc")) {
-            resultat = "1-0";
-        } else if (message.toLowerCase().contains("noir")) {
-            resultat = "0-1";
-        } else {
-            resultat = "1/2-1/2";
-        }
-
-        sauvegarderEnPGN(nomFichierPGN, resultat);
-
-        //  Sauvegarde image PNG
-        String nomFichierPNG = "captures/echiquier_fin_" + timestamp + ".png";
+        new File("sauvegardes").mkdirs();
         new File("captures").mkdirs();
-        sauvegarderEchiquierEtPGNEnPNG(nomFichierPNG, resultat); // À condition que cette méthode prenne un nom de fichier
 
-        //  Affichage message fin de partie
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(Color.BLACK);
+        String fichierPGN = "sauvegardes/partie_" + timestamp + ".pgn";
+        String fichierPNG = "captures/echiquier_fin_" + timestamp + ".png";
 
-        JLabel titre = new JLabel("<html><div style='text-align: center;'><h2 style='color:white;'>" + message + "</h2></div></html>");
-        titre.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        String resultat = message.toLowerCase().contains("blanc") ? "1-0" :
+                message.toLowerCase().contains("noir") ? "0-1" : "1/2-1/2";
 
-        panel.add(Box.createVerticalStrut(20));
-        panel.add(titre);
-        panel.add(Box.createVerticalStrut(20));
+        sauvegarderEnPGN(fichierPGN, resultat);
+        sauvegarderEchiquierEtPGNEnPNG(fichierPNG, resultat);
 
         if (interfaceUtilisateur != null) {
-            interfaceUtilisateur.afficherMessage( message);
+            interfaceUtilisateur.afficherMessage(message);
         }
 
         if (vueEchiquier != null) {
@@ -396,7 +324,6 @@ public class Jeu {
             vueEchiquier.desactiverPlateau();
         }
     }
-
 
     public void setVueEchiquier(VueEchiquier vueEchiquier) {
         this.vueEchiquier = vueEchiquier;
@@ -410,17 +337,12 @@ public class Jeu {
         return joueurBlanc;
     }
 
-
-
     public ArrayList<Coup> getHistorique() {
         return historique;
     }
 
     public Coup getDernierCoup() {
-        if (!historique.isEmpty()) {
-            return historique.get(historique.size() - 1);
-        }
-        return null;
+        return historique.isEmpty() ? null : historique.get(historique.size() - 1);
     }
 
     public boolean isPartieEnCours() {
