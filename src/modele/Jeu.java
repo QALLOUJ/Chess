@@ -233,7 +233,7 @@ public class Jeu {
         }
     }
 
-    private void verifierEchecEtMat(String couleur) {
+    public void verifierEchecEtMat(String couleur) {
         if (plateau.estEchecEtMat(couleur)) {
             afficherMessage("Échec et Mat", joueurCourant.getNom() + " a remporté la partie !");
             finPartie(joueurCourant.getNom() + " a gagné par Échec et Mat !");

@@ -161,13 +161,16 @@ public class Plateau extends Observable {
                 Piece piece = cases[x][y].getPiece();
                 if (piece != null && !piece.getCouleur().equals(couleur)) {
                     if (piece.peutAttaquer(cases[x][y], caseRoi)) {
+                        System.out.println("Le roi " + couleur + " est en échec !");
                         return true;
                     }
                 }
             }
         }
+
         return false;
     }
+
 
     public boolean estEchecEtMat(String couleur) {
         if (!estEnEchec(couleur)) {
@@ -330,59 +333,29 @@ public class Plateau extends Observable {
         setPiece(new Roi("noir"), 4,0);
         setPiece(new Tour("noir"), 0, 0);
         setPiece(new Tour("noir"), 3, 2);
-
         // vider les cases entre roi et tours pour permettre le roque
-        for (int col = 1; col < 4; col++) {
-            cases[7][col].setPiece(null);  // cases b1, c1, d1 libres
-            cases[0][col].setPiece(null);  // cases b8, c8, d8 libres
-        }
-        for (int col = 5; col < 7; col++) {
-            cases[7][col].setPiece(null);  // cases f1, g1 libres
-            cases[0][col].setPiece(null);  // cases f8, g8 libres
-        }
-    }
 
+    }
     public void initialiserMiseEnPassantTest() {
         reinitialiser();
-
-        // position initiale :
-        // pion blanc en e5 → ligne 4, colonne 4
-        setPiece(new Pion("blanc"), 4, 4);
-
-        // pion noir en f7 → ligne 6, colonne 5
+        setPiece(new Pion("blanc"), 6, 6);
+        setPiece(new Pion("blanc"), 4, 6);
         setPiece(new Pion("noir"), 6, 5);
 
-        // simuler déplacement noir de f7 → f5 (ligne 6 → ligne 4)
-        Piece pionNoir = cases[6][5].getPiece();
-        cases[6][5].setPiece(null);  // retirer de f7
-        cases[4][5].setPiece(pionNoir);  // placer en f5
-        pionNoir.setCase(cases[4][5]);
 
-        // marquer ce pion comme ayant fait un double pas (si ton code a une variable pour ça)
-        pionNoir.setVientDeFaireDoublePas(true); // à toi de définir ça selon ton implémentation
-
-        // maintenant : le pion blanc peut faire la prise en passant sur f6 (ligne 5, colonne 5)
     }
-
-
-
-
-
     //test promotion
     public void initialiserPromotionTest() {
         reinitialiser();
         setPiece(new Pion("blanc"), 2, 2); // a7, va en a8 pour promotion
     }
-
-
     public void initialiserEchecTest() {
         reinitialiser();
-
         setPiece(new Roi("noir"), 0, 4);
-        setPiece(new Reine("blanc"), 1, 4); // met le roi noir en échec
+        setPiece(new Reine("blanc"), 1, 7);
+        setPiece(new Reine("blanc"), 1, 1);
+
     }
-
-
     public void initialiserMatTest() {
         reinitialiser();
 
