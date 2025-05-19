@@ -161,7 +161,6 @@ public class Plateau extends Observable {
                 Piece piece = cases[x][y].getPiece();
                 if (piece != null && !piece.getCouleur().equals(couleur)) {
                     if (piece.peutAttaquer(cases[x][y], caseRoi)) {
-                        System.out.println("Le roi " + couleur + " est en échec !");
                         return true;
                     }
                 }
@@ -295,30 +294,30 @@ public class Plateau extends Observable {
     public Case getCaseDepuisNotation(String notation) {
         if (notation == null || notation.length() != 2) return null;
 
-        char colonne = notation.charAt(0);
-        char ligne = notation.charAt(1);
+        char colonne = notation.charAt(0);  // 'a' à 'h'
+        char ligne = notation.charAt(1);    // '1' à '8'
 
-        int x = colonne - 'a'; // 'a' -> 0, 'b' -> 1, ...
-        int y = SIZE_Y - (ligne - '0'); // ligne '1' = y=7 (en bas), '8' = y=0 (en haut)
+        int x = colonne - 'a';              // a-h → 0-7
+        int y = 8 - (ligne - '0');          // '1' → y=7, '8' → y=0
 
         if (x < 0 || x >= SIZE_X || y < 0 || y >= SIZE_Y) return null;
 
         return getCase(x, y);
     }
-    //  méthode toString()
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (int y = 0; y < SIZE_Y; y++) {
+        for (int y = SIZE_Y - 1; y >= 0; y--) {  // On part du haut du plateau
             for (int x = 0; x < SIZE_X; x++) {
                 Piece p = cases[x][y].getPiece();
-                sb.append(p == null ? "." : p.getNom().charAt(0)); // Exemple : afficher la première lettre du nom
-                sb.append(" ");
+                sb.append(p == null ? ". " : p.getNom().charAt(0) + " ");
             }
             sb.append("\n");
         }
         return sb.toString();
     }
+
 
     //  test roque (petit et grand, blanc et noir)
     public void initialiserRoqueTest() {

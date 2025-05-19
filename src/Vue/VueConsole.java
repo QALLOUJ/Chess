@@ -34,8 +34,9 @@ public class VueConsole implements InterfaceUtilisateur {
 
     @Override
     public void miseAJourChrono(String couleur, int temps) {
-        System.out.println("⏱ Chrono " + couleur + " : " + temps + "s");
+        // Ne rien faire en mode console : suppression de l'affichage du chrono
     }
+
 
     @Override
     public String demanderCoup() {

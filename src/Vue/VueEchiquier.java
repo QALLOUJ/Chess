@@ -375,9 +375,9 @@ public abstract class VueEchiquier extends JFrame implements InterfaceUtilisateu
         JOptionPane.showMessageDialog(this, panel, "Information", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // Mise à jour affichage tour joueur
+
         public void mettreAJourTour(String nomJoueur) {
-            // Exemple : labelTour.setText("Tour de : " + nomJoueur);
+
         }
 
     public void setControleur(ControleurEchiquier controleur) {
@@ -396,4 +396,13 @@ public abstract class VueEchiquier extends JFrame implements InterfaceUtilisateu
                 this.nomJoueurNoir != null &&
                 this.tempsParJoueur > 0;
     }
+    @Override
+    public void miseAJourChrono(String couleur, int temps) {
+        if ("noir".equalsIgnoreCase(couleur) && labelChronoNoir != null) {
+            labelChronoNoir.setText("Noir : " + formatTemps(temps));
+        } else if ("blanc".equalsIgnoreCase(couleur) && labelChronoBlanc != null) {
+            labelChronoBlanc.setText("Blanc : " + formatTemps(temps));
+        }
+    }
+
 }

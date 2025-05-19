@@ -13,7 +13,6 @@ public class ControleurConsole {
     public ControleurConsole(Jeu jeu, VueConsole vue) {
         this.jeu = jeu;
         this.vue = vue;
-        jeu.demarrerChronometre(); // démarrer le chrono dès le lancement du jeu
     }
 
     // boucle principale du jeu — gère les tours jusqu'à la fin
@@ -84,7 +83,9 @@ public class ControleurConsole {
                 vue.afficherMessage("Partie nulle par pat.");
                 partieFinie = true;
             } else {
-                jeu.changerTour(); // sinon, on passe au joueur suivant
+
+
+
             }
         }
 

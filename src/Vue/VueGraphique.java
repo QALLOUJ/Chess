@@ -35,8 +35,8 @@ public class VueGraphique extends VueEchiquier {
 
     @Override
     public void afficherPlateau(String plateauTexte) {
-        // Vous pouvez l'ignorer si vous avez un affichage graphique,
-        // mais voici une implémentation console pour du debug éventuel :
+
+        //  implémentation console pour du debug éventuel :
         System.out.println(plateauTexte);
     }
 

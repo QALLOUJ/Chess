@@ -1,3 +1,5 @@
+package Vue;
+
 import modele.*;
 import Vue.*;
 import controleur.ControleurEchiquier;
@@ -16,8 +18,8 @@ public class Demo {
             vue.setLocationRelativeTo(null);
             vue.setVisible(true);
             // Choix du scénario de test
-            String scenario = "enpassant";// "enpassant", "promotion", "mat", ou "" pour normal
-            //String scenario = "roque";
+            //String scenario = "enpassant";// "enpassant", "promotion", "mat", ou "" pour normal
+            String scenario = "roque";
             //String scenario = "promotion";
             //String scenario = "echec";
             initialiserScenario(plateau, scenario);
