@@ -339,8 +339,8 @@ public class Plateau extends Observable {
     public void initialiserMiseEnPassantTest() {
         reinitialiser();
         setPiece(new Pion("blanc"), 6, 6);
-        setPiece(new Pion("blanc"), 4, 6);
-        setPiece(new Pion("noir"), 6, 5);
+
+        setPiece(new Pion("noir"), 5, 4);
 
 
     }
@@ -356,14 +356,5 @@ public class Plateau extends Observable {
         setPiece(new Reine("blanc"), 1, 1);
 
     }
-    public void initialiserMatTest() {
-        reinitialiser();
-
-        setPiece(new Roi("noir"), 0, 0);
-        setPiece(new Reine("blanc"), 1, 1);
-        setPiece(new Roi("blanc"), 7, 7);
-    }
-
-
 
 }

@@ -20,17 +20,13 @@ public class Demo {
             //String scenario = "roque";
             //String scenario = "promotion";
             //String scenario = "echec";
-            //String scenario = "Mat";
             initialiserScenario(plateau, scenario);
             vue.mettreAJourAffichage();
             jeu.verifierEchecEtMat("blanc");
             jeu.verifierEchecEtMat("noir");
-            Case source = plateau.getCase(6, 5);
-            Case arrivee = plateau.getCase(4, 5);
-            jeu.demandeDeplacementPiece(source, arrivee);
-
-
-
+            Case source = plateau.getCase(5, 4);
+            Case arrivee = plateau.getCase(6, 5);
+            jeu.demandeDeplacementPiece(arrivee, source);
         });
     }
     private static void initialiserScenario(Plateau plateau, String scenario) {
@@ -43,9 +39,6 @@ public class Demo {
                 break;
             case "promotion":
                 plateau.initialiserPromotionTest();
-                break;
-            case "Mat":
-                plateau.initialiserMatTest();
                 break;
             case "echec":
                 plateau.initialiserEchecTest();
