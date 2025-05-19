@@ -1,3 +1,4 @@
+package Vue;
 import modele.*;
 import Vue.*;
 import controleur.ControleurEchiquier;

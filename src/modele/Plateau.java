@@ -320,7 +320,7 @@ public class Plateau extends Observable {
         return sb.toString();
     }
 
-    // ♟️ test roque (petit et grand, blanc et noir)
+    //  test roque (petit et grand, blanc et noir)
     public void initialiserRoqueTest() {
         reinitialiser();
 
