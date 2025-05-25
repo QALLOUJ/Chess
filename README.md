@@ -79,3 +79,6 @@ java Demo
 ---
 
 > Ce projet a été l’occasion de mettre en œuvre l’architecture MVC, la programmation orientée objet, les design patterns, ainsi qu’une interface graphique riche avec Swing.
+>
+---
+Je vous remercie d'avoir pris le temps de visiter notre projet 💙. N'hésitez pas à explorer les différentes fonctionnalités et à consulter le rapport pour plus de détails. Votre retour est toujours apprécié !
